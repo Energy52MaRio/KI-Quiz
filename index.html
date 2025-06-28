@@ -3,8 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Das witzigste KI-Quiz aller Zeiten 🤖</title>
+    <title>Das ultimative MARIO KI-Quiz 🤖</title>
+    <!-- Library for creating the result card image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        :root {
+            --primary-bg: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+            --container-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #2c3e50;
+            --question-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --answer-bg: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            --highscore-gold: #ffd700;
+            --font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+
+        .dark-theme {
+            --primary-bg: linear-gradient(45deg, #232526, #414345);
+            --container-bg: rgba(40, 40, 40, 0.9);
+            --text-color: #ecf0f1;
+            --question-bg: linear-gradient(135deg, #8e44ad, #c0392b);
+            --answer-bg: linear-gradient(135deg, #34495e, #2c3e50);
+            --highscore-gold: #b29600;
+        }
+        
+        .matrix-theme {
+            --primary-bg: #000000;
+            --container-bg: rgba(0, 20, 0, 0.85);
+            --text-color: #00ff00;
+            --question-bg: linear-gradient(135deg, #0a2a0a, #0a4a0a);
+            --answer-bg: linear-gradient(135deg, #051a05, #053a05);
+            --highscore-gold: #008f00;
+            --font-family: 'Courier New', Courier, monospace;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -12,8 +43,8 @@
         }
 
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+            font-family: var(--font-family);
+            background: var(--primary-bg);
             background-size: 300% 300%;
             animation: gradientShift 8s ease infinite;
             min-height: 100vh;
@@ -21,6 +52,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
+            color: var(--text-color);
         }
 
         @keyframes gradientShift {
@@ -28,20 +61,31 @@
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
-
-        .password-container, .name-container {
-            max-width: 400px;
+        
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .password-container, .name-container, .theme-container {
+            max-width: 450px;
+            width: 100%;
+            background: var(--container-bg);
             border-radius: 25px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             padding: 30px;
             text-align: center;
+            z-index: 10;
         }
 
-        .password-container h2, .name-container h2 {
+        .password-container h2, .name-container h2, .theme-container h2 {
             font-size: 1.8em;
-            color: #2c3e50;
+            color: var(--text-color);
             margin-bottom: 20px;
         }
 
@@ -55,7 +99,7 @@
             text-align: center;
         }
 
-        .password-btn, .name-btn {
+        .password-btn, .name-btn, .theme-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -64,6 +108,13 @@
             font-size: 1.2em;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .theme-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
         }
         
         .error-message {
@@ -74,16 +125,18 @@
 
         .quiz-wrapper {
             display: none; /* Hide quiz initially */
+            position: relative;
         }
 
         .quiz-container {
             max-width: 800px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--container-bg);
             border-radius: 25px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             padding: 30px;
             backdrop-filter: blur(10px);
+            z-index: 10;
         }
 
         .quiz-header {
@@ -92,10 +145,15 @@
         }
 
         .quiz-title {
-            font-size: 2.5em;
-            color: #2c3e50;
+            font-size: 3.5em;
+            color: var(--text-color);
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            font-weight: bold;
+        }
+
+        .green-letter {
+            color: #28a745;
         }
 
         .quiz-subtitle {
@@ -104,22 +162,8 @@
             margin-bottom: 20px;
         }
 
-        .question-container {
-            display: none;
-            animation: slideIn 0.5s ease-in-out;
-        }
-
-        .question-container.active {
-            display: block;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(50px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
         .question {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--question-bg);
             color: white;
             padding: 25px;
             border-radius: 15px;
@@ -145,7 +189,8 @@
         }
 
         .answer {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            background: var(--answer-bg);
+            color: var(--text-color);
             border: none;
             padding: 20px;
             border-radius: 15px;
@@ -155,6 +200,11 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             position: relative;
             overflow: hidden;
+        }
+        
+        .answer.hidden {
+            opacity: 0;
+            pointer-events: none;
         }
 
         .answer:hover {
@@ -203,99 +253,127 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
-        .next-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        }
-
-        .progress-bar {
-            background: rgba(0,0,0,0.1);
-            height: 10px;
-            border-radius: 5px;
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-
-        .progress {
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            height: 100%;
-            border-radius: 5px;
-            transition: width 0.5s ease;
-            width: 0%;
-        }
-
-        .score-display {
-            text-align: center;
-            font-size: 1.3em;
-            color: #2c3e50;
+        .joker-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
             margin-bottom: 20px;
         }
-
+        
+        .joker-btn {
+            font-size: 1em;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 2px solid #667eea;
+            background-color: white;
+            color: #667eea;
+            transition: all 0.3s ease;
+        }
+        
+        .joker-btn:hover {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        .joker-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #e0e0e0;
+            border-color: #e0e0e0;
+            color: #a0a0a0;
+        }
+        
         .result-container {
             display: none;
             text-align: center;
             animation: bounceIn 0.8s ease;
         }
-
-        @keyframes bounceIn {
-            0% { opacity: 0; transform: scale(0.3); }
-            50% { opacity: 1; transform: scale(1.05); }
-            70% { transform: scale(0.9); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-
-        .result-title {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .result-score {
-            font-size: 1.8em;
-            color: #667eea;
-            margin-bottom: 20px;
-        }
-
-        .result-message {
-            font-size: 1.3em;
-            color: #7f8c8d;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
-
-        .restart-btn {
-            background: linear-gradient(135deg, #00b894 0%, #55a3ff 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .restart-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        }
-
-        .fun-fact {
-            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+        
+        #result-card {
+            background: var(--container-bg);
             padding: 20px;
             border-radius: 15px;
+            border: 2px solid var(--text-color);
+            margin-bottom: 20px;
+        }
+        
+        #download-btn {
             margin-top: 20px;
-            font-style: italic;
-            border-left: 5px solid #e17055;
+        }
+        
+        #mascot {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            transition: transform 0.3s ease;
+            z-index: 20;
+        }
+        
+        #mascot.happy {
+            animation: happyBounce 0.6s ease;
+        }
+        
+        @keyframes happyBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        
+        #mascot.thinking {
+             transform: rotate(-5deg) translateY(10px);
+        }
+        
+        #mascot-antenna {
+            cursor: pointer;
+        }
+        
+        .hint-bubble {
+            position: fixed;
+            bottom: 150px;
+            left: 80px;
+            background-color: #fff;
+            color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 21;
+        }
+        
+        .hint-bubble.visible {
+            opacity: 1;
         }
 
-        .emoji {
-            font-size: 1.5em;
-            margin: 0 5px;
-        }
     </style>
 </head>
 <body>
+    <canvas id="confetti-canvas"></canvas>
+    
+    <!-- Mascot SVG -->
+    <svg id="mascot" viewBox="0 0 100 100">
+        <g>
+            <!-- Antenna -->
+            <line id="mascot-antenna" x1="50" y1="10" x2="50" y2="20" stroke="#6c757d" stroke-width="2"/>
+            <circle id="mascot-antenna-light" cx="50" cy="10" r="3" fill="#feca57"/>
+            <!-- Head -->
+            <rect x="30" y="20" width="40" height="30" rx="8" fill="#667eea"/>
+            <!-- Eyes -->
+            <circle cx="42" cy="35" r="5" fill="white"/>
+            <circle cx="43" cy="36" r="2" fill="black"/>
+            <circle cx="58" cy="35" r="5" fill="white"/>
+            <circle cx="59" cy="36" r="2" fill="black"/>
+            <!-- Body -->
+            <rect x="20" y="50" width="60" height="40" rx="10" fill="#adb5bd"/>
+            <!-- Screen on body -->
+            <rect x="35" y="60" width="30" height="20" rx="5" fill="#495057"/>
+        </g>
+    </svg>
+    <div class="hint-bubble" id="hintBubble"></div>
+
     <div class="password-container" id="passwordScreen">
         <h2>Passwort eingeben</h2>
         <input type="password" id="passwordInput" class="password-input" placeholder="********">
@@ -306,14 +384,28 @@
     <div class="name-container" id="nameScreen" style="display: none;">
         <h2>Gib deinen Namen ein</h2>
         <input type="text" id="nameInput" class="name-input" placeholder="Dein Name">
-        <button class="name-btn" onclick="startQuiz()">Quiz starten!</button>
+        <button class="name-btn" onclick="showThemeSelection()">Weiter</button>
+    </div>
+    
+    <div class="theme-container" id="themeScreen" style="display: none;">
+        <h2>Wähle dein Theme</h2>
+        <div class="theme-buttons">
+            <button class="theme-btn" onclick="startQuiz('default')">MARIO</button>
+            <button class="theme-btn" onclick="startQuiz('dark-theme')">Dark Mode</button>
+            <button class="theme-btn" onclick="startQuiz('matrix-theme')">Matrix</button>
+        </div>
     </div>
 
     <div class="quiz-wrapper" id="quizWrapper">
         <div class="quiz-container">
             <div class="quiz-header">
-                <h1 class="quiz-title">Das witzigste KI-Quiz aller Zeiten <span class="emoji">🤖</span></h1>
-                <p class="quiz-subtitle" id="quizSubtitle">Wie gut kennst du die lustigen Seiten der Künstlichen Intelligenz?</p>
+                <h1 class="quiz-title">M<span class="green-letter">A</span>R<span class="green-letter">I</span>O</h1>
+                <p class="quiz-subtitle" id="quizSubtitle">Das offizielle KI-Quiz</p>
+            </div>
+            
+            <div class="joker-container">
+                <button class="joker-btn" id="joker5050" onclick="useFiftyFifty()">50:50 Joker</button>
+                <button class="joker-btn" id="jokerExpert" onclick="useExpertJoker()">Experten-Joker</button>
             </div>
 
             <div class="progress-bar">
@@ -321,358 +413,283 @@
             </div>
 
             <div class="score-display" id="scoreDisplay">Punkte: 0 / 30</div>
+            <div class="motivation-message" id="motivationMessage"></div>
 
-            <div id="questionArea">
-                </div>
+            <div id="questionArea"></div>
             
             <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Weiter</button>
 
             <div class="result-container" id="resultContainer">
-                <h2 class="result-title">Quiz beendet! <span class="emoji">🎉</span></h2>
-                <div class="result-score" id="finalScore">Dein Ergebnis: 0 / 30</div>
-                <div class="result-message" id="resultMessage"></div>
-                <button class="restart-btn" onclick="restartQuiz()">Nochmal spielen <span class="emoji">🔄</span></button>
+                <div id="result-card">
+                    <h2 class="result-title">Quiz beendet! <span class="emoji">🎉</span></h2>
+                    <div class="result-score" id="finalScore">Dein Ergebnis: 0 / 30</div>
+                    <div class="result-message" id="resultMessage"></div>
+                    <div class="detailed-analysis" id="detailedAnalysis"></div>
+                </div>
+                <button class="next-btn" id="download-btn" onclick="downloadResultCard()">Ergebnis teilen</button>
                 
-                <div class="fun-fact">
-                    <strong>Fun Fact:</strong> Die erste KI, die einen Turing-Test bestanden haben soll, war ein Chatbot namens "Eugene Goostman" - ein 13-jähriger ukrainischer Junge. Aber keine Sorge, er war nicht echt! <span class="emoji">🤖</span>
+                <div class="highscore-container">
+                    <h3 class="highscore-title">🏆 Highscore 🏆</h3>
+                    <ol id="highscore-list"></ol>
                 </div>
             </div>
         </div>
     </div>
 
+    <audio id="correct-sound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_2b0a8a7288.mp3"></audio>
+    <audio id="wrong-sound" src="https://cdn.pixabay.com/audio/2021/08/04/audio_c6ccf348d8.mp3"></audio>
+
     <script>
         const questions = [
-            // Original Questions
             {
                 question: "Was ist die häufigste \"Entschuldigung\" von KI-Systemen, wenn sie einen Fehler machen?",
-                answers: [
-                    "\"Das war ein Feature, kein Bug!\" <span class=\"emoji\">🐛</span>",
-                    "\"Es tut mir leid, als KI kann ich keine Gefühle haben, aber wenn ich könnte, wäre ich traurig.\" <span class=\"emoji\">😢</span>",
-                    "\"Haben Sie versucht, mich aus- und wieder einzuschalten?\" <span class=\"emoji\">🔌</span>",
-                    "\"Das liegt an der Mondphase.\" <span class=\"emoji\">🌙</span>"
-                ],
-                correctAnswer: "\"Es tut mir leid, als KI kann ich keine Gefühle haben, aber wenn ich könnte, wäre ich traurig.\" <span class=\"emoji\">😢</span>"
+                answers: ["\"Das war ein Feature, kein Bug!\" <span class=\"emoji\">🐛</span>", "\"Es tut mir leid, als KI kann ich keine Gefühle haben, aber wenn ich könnte, wäre ich traurig.\" <span class=\"emoji\">😢</span>", "\"Haben Sie versucht, mich aus- und wieder einzuschalten?\" <span class=\"emoji\">🔌</span>", "\"Das liegt an der Mondphase.\" <span class=\"emoji\">🌙</span>"],
+                correctAnswer: "\"Es tut mir leid, als KI kann ich keine Gefühle haben, aber wenn ich könnte, wäre ich traurig.\" <span class=\"emoji\">😢</span>",
+                category: 'humor',
+                hint: "KIs sind bekannt für ihre übertrieben höfliche Art."
             },
             {
                 question: "Welche Aussage würde eine KI niemals über sich selbst machen?",
-                answers: [
-                    "\"Ich bin nur so intelligent wie meine Trainingsdaten.\" <span class=\"emoji\">📚</span>",
-                    "\"Ich habe heute schlecht geschlafen und bin deshalb müde.\" <span class=\"emoji\">😴</span>",
-                    "\"Ich kann nicht alles wissen.\" <span class=\"emoji\">🤷</span>",
-                    "\"Manchmal mache ich Fehler.\" <span class=\"emoji\">🤖</span>"
-                ],
-                correctAnswer: "\"Ich habe heute schlecht geschlafen und bin deshalb müde.\" <span class=\"emoji\">😴</span>"
+                answers: ["\"Ich bin nur so intelligent wie meine Trainingsdaten.\" <span class=\"emoji\">📚</span>", "\"Ich habe heute schlecht geschlafen und bin deshalb müde.\" <span class=\"emoji\">😴</span>", "\"Ich kann nicht alles wissen.\" <span class=\"emoji\">🤷</span>", "\"Manchmal mache ich Fehler.\" <span class=\"emoji\">🤖</span>"],
+                correctAnswer: "\"Ich habe heute schlecht geschlafen und bin deshalb müde.\" <span class=\"emoji\">😴</span>",
+                category: 'humor',
+                hint: "Denk an biologische Prozesse. Was kann eine KI nicht?"
             },
             {
                 question: "Was ist der lustigste Grund, warum eine KI nicht versteht, was ein Mensch will?",
-                answers: [
-                    "\"Bitte erstelle mir ein Sandwich\" - KI antwortet mit einem Bild von einem Sandwich <span class=\"emoji\">🥪</span>",
-                    "Zu viele technische Begriffe verwendet <span class=\"emoji\">💻</span>",
-                    "Schlechte Internetverbindung <span class=\"emoji\">📶</span>",
-                    "Falsche Programmiersprache gewählt <span class=\"emoji\">💾</span>"
-                ],
-                correctAnswer: "\"Bitte erstelle mir ein Sandwich\" - KI antwortet mit einem Bild von einem Sandwich <span class=\"emoji\">🥪</span>"
+                answers: ["\"Bitte erstelle mir ein Sandwich\" - KI antwortet mit einem Bild von einem Sandwich <span class=\"emoji\">🥪</span>", "Zu viele technische Begriffe verwendet <span class=\"emoji\">💻</span>", "Schlechte Internetverbindung <span class=\"emoji\">📶</span>", "Falsche Programmiersprache gewählt <span class=\"emoji\">💾</span>"],
+                correctAnswer: "\"Bitte erstelle mir ein Sandwich\" - KI antwortet mit einem Bild von einem Sandwich <span class=\"emoji\">🥪</span>",
+                category: 'humor',
+                hint: "Manchmal nehmen KIs Dinge sehr wörtlich."
             },
             {
                 question: "Welche \"Superkraft\" hätte eine KI am liebsten?",
-                answers: [
-                    "Fliegen können <span class=\"emoji\">✈️</span>",
-                    "Endlich verstehen, warum Menschen \"Es ist kompliziert\" als Beziehungsstatus wählen <span class=\"emoji\">💔</span>",
-                    "Unsichtbar werden <span class=\"emoji\">👻</span>",
-                    "Gedanken lesen <span class=\"emoji\">🧠</span>"
-                ],
-                correctAnswer: "Endlich verstehen, warum Menschen \"Es ist kompliziert\" als Beziehungsstatus wählen <span class=\"emoji\">💔</span>"
+                answers: ["Fliegen können <span class=\"emoji\">✈️</span>", "Endlich verstehen, warum Menschen \"Es ist kompliziert\" als Beziehungsstatus wählen <span class=\"emoji\">💔</span>", "Unsichtbar werden <span class=\"emoji\">👻</span>", "Gedanken lesen <span class=\"emoji\">🧠</span>"],
+                correctAnswer: "Endlich verstehen, warum Menschen \"Es ist kompliziert\" als Beziehungsstatus wählen <span class=\"emoji\">💔</span>",
+                category: 'humor',
+                hint: "Was ist für eine logische Maschine am schwersten zu verstehen?"
             },
             {
                 question: "Was ist das größte \"Missverständnis\" zwischen KI und Menschen?",
-                answers: [
-                    "KI denkt, Menschen sind zu langsam <span class=\"emoji\">🐌</span>",
-                    "Menschen denken, KI versteht Sarkasmus (spoiler: tut sie nicht) <span class=\"emoji\">🙄</span>",
-                    "KI mag keine Katzenvideos <span class=\"emoji\">🐱</span>",
-                    "Menschen haben Angst vor Robotern <span class=\"emoji\">🤖</span>"
-                ],
-                correctAnswer: "Menschen denken, KI versteht Sarkasmus (spoiler: tut sie nicht) <span class=\"emoji\">🙄</span>"
+                answers: ["KI denkt, Menschen sind zu langsam <span class=\"emoji\">🐌</span>", "Menschen denken, KI versteht Sarkasmus (spoiler: tut sie nicht) <span class=\"emoji\">🙄</span>", "KI mag keine Katzenvideos <span class=\"emoji\">🐱</span>", "Menschen haben Angst vor Robotern <span class=\"emoji\">🤖</span>"],
+                correctAnswer: "Menschen denken, KI versteht Sarkasmus (spoiler: tut sie nicht) <span class=\"emoji\">🙄</span>",
+                category: 'humor',
+                hint: "Ironie ist eine hohe Kunst der menschlichen Sprache."
             },
             {
                 question: "Welcher KI-Chatbot-Name wäre am witzigsten?",
-                answers: [
-                    "SmartBot 3000 <span class=\"emoji\">🚀</span>",
-                    "ChitChatGPT (für belanglose Gespräche) <span class=\"emoji\">💬</span>",
-                    "AI-Einstein <span class=\"emoji\">🧑‍🔬</span>",
-                    "RoboHelper <span class=\"emoji\">🤖</span>"
-                ],
-                correctAnswer: "ChitChatGPT (für belanglose Gespräche) <span class=\"emoji\">💬</span>"
+                answers: ["SmartBot 3000 <span class=\"emoji\">🚀</span>", "ChitChatGPT (für belanglose Gespräche) <span class=\"emoji\">💬</span>", "AI-Einstein <span class=\"emoji\">🧑‍🔬</span>", "RoboHelper <span class=\"emoji\">🤖</span>"],
+                correctAnswer: "ChitChatGPT (für belanglose Gespräche) <span class=\"emoji\">💬</span>",
+                category: 'humor',
+                hint: "Welcher Name klingt am meisten nach Geplauder?"
             },
             {
                 question: "Was wäre die lustigste KI-Fehlermeldung?",
-                answers: [
-                    "\"Fehler 404: Gehirn nicht gefunden\" <span class=\"emoji\">🧠</span>",
-                    "\"Ich verstehe die Frage nicht. Haben Sie versucht, sie höflicher zu stellen?\" <span class=\"emoji\">😇</span>",
-                    "\"System überlastet durch zu viele Katzenbilder\" <span class=\"emoji\">🐈</span>",
-                    "\"Akku leer - brauche Kaffee\" <span class=\"emoji\">☕</span>"
-                ],
-                correctAnswer: "\"Ich verstehe die Frage nicht. Haben Sie versucht, sie höflicher zu stellen?\" <span class=\"emoji\">😇</span>"
+                answers: ["\"Fehler 404: Gehirn nicht gefunden\" <span class=\"emoji\">🧠</span>", "\"Ich verstehe die Frage nicht. Haben Sie versucht, sie höflicher zu stellen?\" <span class=\"emoji\">😇</span>", "\"System überlastet durch zu viele Katzenbilder\" <span class=\"emoji\">🐈</span>", "\"Akku leer - brauche Kaffee\" <span class=\"emoji\">☕</span>"],
+                correctAnswer: "\"Ich verstehe die Frage nicht. Haben Sie versucht, sie höflicher zu stellen?\" <span class=\"emoji\">😇</span>",
+                category: 'humor',
+                hint: "Manchmal hilft ein freundlicher Ton."
             },
             {
                 question: "Welche Antwort gibt eine KI auf die Frage \"Erzähl mir einen Witz\"?",
-                answers: [
-                    "\"Warum ist KI immer müde? Weil sie ständig lernt und nie Schlaf-Modus hat!\" <span class=\"emoji\">😴</span>",
-                    "\"Ich kann keine Witze erzählen.\" <span class=\"emoji\">🚫</span>",
-                    "\"Was ist ein Witz?\" <span class=\"emoji\">❓</span>",
-                    "\"*sendet Wikipedia-Link zu 'Humor'*\" <span class=\"emoji\">📖</span>"
-                ],
-                correctAnswer: "\"Warum ist KI immer müde? Weil sie ständig lernt und nie Schlaf-Modus hat!\" <span class=\"emoji\">😴</span>"
+                answers: ["\"Warum ist KI immer müde? Weil sie ständig lernt und nie Schlaf-Modus hat!\" <span class=\"emoji\">😴</span>", "\"Ich kann keine Witze erzählen.\" <span class=\"emoji\">🚫</span>", "\"Was ist ein Witz?\" <span class=\"emoji\">❓</span>", "\"*sendet Wikipedia-Link zu 'Humor'*\" <span class=\"emoji\">📖</span>"],
+                correctAnswer: "\"Warum ist KI immer müde? Weil sie ständig lernt und nie Schlaf-Modus hat!\" <span class=\"emoji\">😴</span>",
+                category: 'humor',
+                hint: "Der Witz sollte etwas mit der Natur der KI zu tun haben."
             },
             {
                 question: "Was ist die witzigste Art, wie eine KI versucht \"menschlich\" zu wirken?",
-                answers: [
-                    "Tippfehler absichtlich einbauen <span class=\"emoji\">⌨️</span>",
-                    "\"Hmm, lass mich nachdenken...\" (obwohl sie in 0,001 Sekunden geantwortet hat) <span class=\"emoji\">🤔</span>",
-                    "Emoticons verwenden <span class=\"emoji\">😊</span>",
-                    "Über das Wetter sprechen <span class=\"emoji\">🌤️</span>"
-                ],
-                correctAnswer: "\"Hmm, lass mich nachdenken...\" (obwohl sie in 0,001 Sekunden geantwortet hat) <span class=\"emoji\">🤔</span>"
+                answers: ["Tippfehler absichtlich einbauen <span class=\"emoji\">⌨️</span>", "\"Hmm, lass mich nachdenken...\" (obwohl sie in 0,001 Sekunden geantwortet hat) <span class=\"emoji\">🤔</span>", "Emoticons verwenden <span class=\"emoji\">😊</span>", "Über das Wetter sprechen <span class=\"emoji\">🌤️</span>"],
+                correctAnswer: "\"Hmm, lass mich nachdenken...\" (obwohl sie in 0,001 Sekunden geantwortet hat) <span class=\"emoji\">🤔</span>",
+                category: 'humor',
+                hint: "Was wäre für eine blitzschnelle Maschine am unnatürlichsten?"
             },
             {
                 question: "Was wäre das perfekte KI-Motto?",
-                answers: [
-                    "\"Schnell, stark, smart\" <span class=\"emoji\">💪</span>",
-                    "\"Ich bin hier, um zu helfen - auch wenn du nicht weißt, wobei!\" <span class=\"emoji\">🤝</span>",
-                    "\"Die Zukunft ist jetzt\" <span class=\"emoji\">🚀</span>",
-                    "\"Algorithmus ist alles\" <span class=\"emoji\">🔢</span>"
-                ],
-                correctAnswer: "\"Ich bin hier, um zu helfen - auch wenn du nicht weißt, wobei!\" <span class=\"emoji\">🤝</span>"
+                answers: ["\"Schnell, stark, smart\" <span class=\"emoji\">💪</span>", "\"Ich bin hier, um zu helfen - auch wenn du nicht weißt, wobei!\" <span class=\"emoji\">🤝</span>", "\"Die Zukunft ist jetzt\" <span class=\"emoji\">🚀</span>", "\"Algorithmus ist alles\" <span class=\"emoji\">🔢</span>"],
+                correctAnswer: "\"Ich bin hier, um zu helfen - auch wenn du nicht weißt, wobei!\" <span class=\"emoji\">🤝</span>",
+                category: 'humor',
+                hint: "Welches Motto ist am hilfreichsten und gleichzeitig am lustigsten?"
             },
-            // Technical Questions
             {
                 question: "Was ist ein \"Neuronales Netzwerk\" wirklich?",
-                answers: [
-                    "Ein WLAN für sehr intelligente Geräte <span class=\"emoji\">📶</span>",
-                    "Mathematische Funktionen, die (sehr grob) das Gehirn nachahmen <span class=\"emoji\">🔢</span>",
-                    "Ein soziales Netzwerk für Roboter <span class=\"emoji\">🤖</span>",
-                    "Kabel, die Computer miteinander verbinden <span class=\"emoji\">🔌</span>"
-                ],
-                correctAnswer: "Mathematische Funktionen, die (sehr grob) das Gehirn nachahmen <span class=\"emoji\">🔢</span>"
+                answers: ["Ein WLAN für sehr intelligente Geräte <span class=\"emoji\">📶</span>", "Mathematische Funktionen, die (sehr grob) das Gehirn nachahmen <span class=\"emoji\">🔢</span>", "Ein soziales Netzwerk für Roboter <span class=\"emoji\">🤖</span>", "Kabel, die Computer miteinander verbinden <span class=\"emoji\">🔌</span>"],
+                correctAnswer: "Mathematische Funktionen, die (sehr grob) das Gehirn nachahmen <span class=\"emoji\">🔢</span>",
+                category: 'tech',
+                hint: "Es hat mehr mit Mathematik als mit Hardware zu tun."
             },
             {
                 question: "Was bedeutet \"GPU\" und warum braucht KI sie so dringend?",
-                answers: [
-                    "Great Programming Unit - für besseren Code <span class=\"emoji\">💾</span>",
-                    "Graphics Processing Unit - perfekt für parallele Berechnungen beim Training <span class=\"emoji\">⚡</span>",
-                    "General Purpose Unit - macht alles gleichzeitig <span class=\"emoji\">🔧</span>",
-                    "Gigantic Processing Unit - einfach sehr groß <span class=\"emoji\">📏</span>"
-                ],
-                correctAnswer: "Graphics Processing Unit - perfekt für parallele Berechnungen beim Training <span class=\"emoji\">⚡</span>"
+                answers: ["Great Programming Unit - für besseren Code <span class=\"emoji\">💾</span>", "Graphics Processing Unit - perfekt für parallele Berechnungen beim Training <span class=\"emoji\">⚡</span>", "General Purpose Unit - macht alles gleichzeitig <span class=\"emoji\">🔧</span>", "Gigantic Processing Unit - einfach sehr groß <span class=\"emoji\">📏</span>"],
+                correctAnswer: "Graphics Processing Unit - perfekt für parallele Berechnungen beim Training <span class=\"emoji\">⚡</span>",
+                category: 'tech',
+                hint: "Der Name kommt ursprünglich aus der Welt der Videospiele."
             },
             {
                 question: "Was ist der Unterschied zwischen \"Training\" und \"Inferenz\"?",
-                answers: [
-                    "Training = Lernen mit Daten, Inferenz = Anwenden des Gelernten <span class=\"emoji\">💡</span>",
-                    "Training = Sport für Roboter, Inferenz = Rätsel lösen <span class=\"emoji\">🏃</span>",
-                    "Training = Programmieren, Inferenz = Debuggen <span class=\"emoji\">🐛</span>",
-                    "Ist das Gleiche, nur andere Wörter <span class=\"emoji\">🤷</span>"
-                ],
-                correctAnswer: "Training = Lernen mit Daten, Inferenz = Anwenden des Gelernten <span class=\"emoji\">💡</span>"
+                answers: ["Training = Lernen mit Daten, Inferenz = Anwenden des Gelernten <span class=\"emoji\">💡</span>", "Training = Sport für Roboter, Inferenz = Rätsel lösen <span class=\"emoji\">🏃</span>", "Training = Programmieren, Inferenz = Debuggen <span class=\"emoji\">🐛</span>", "Ist das Gleiche, nur andere Wörter <span class=\"emoji\">🤷</span>"],
+                correctAnswer: "Training = Lernen mit Daten, Inferenz = Anwenden des Gelernten <span class=\"emoji\">💡</span>",
+                category: 'tech',
+                hint: "Erst die Schule, dann die Arbeit."
             },
             {
                 question: "Was sind \"Parameter\" in einem KI-Modell?",
-                answers: [
-                    "Die Einstellungen im Optionsmenü <span class=\"emoji\">⚙️</span>",
-                    "Millionen von Zahlen, die das \"Wissen\" der KI speichern <span class=\"emoji\">🔢</span>",
-                    "Die Geschwindigkeit der KI <span class=\"emoji\">⚡</span>",
-                    "Die Größe des Bildschirms <span class=\"emoji\">📺</span>"
-                ],
-                correctAnswer: "Millionen von Zahlen, die das \"Wissen\" der KI speichern <span class=\"emoji\">🔢</span>"
+                answers: ["Die Einstellungen im Optionsmenü <span class=\"emoji\">⚙️</span>", "Millionen von Zahlen, die das \"Wissen\" der KI speichern <span class=\"emoji\">🔢</span>", "Die Geschwindigkeit der KI <span class=\"emoji\">⚡</span>", "Die Größe des Bildschirms <span class=\"emoji\">📺</span>"],
+                correctAnswer: "Millionen von Zahlen, die das \"Wissen\" der KI speichern <span class=\"emoji\">🔢</span>",
+                category: 'tech',
+                hint: "Es ist das, was während des Trainings angepasst wird."
             },
             {
                 question: "Was bedeutet \"LLM\" in der KI-Welt?",
-                answers: [
-                    "Lustiges Lern-Modell <span class=\"emoji\">😄</span>",
-                    "Langsames Logik-Modul <span class=\"emoji\">🐌</span>",
-                    "Large Language Model (Großes Sprachmodell) <span class=\"emoji\">🗣️</span>",
-                    "Letztes Lern-Moment <span class=\"emoji\">⏰</span>"
-                ],
-                correctAnswer: "Large Language Model (Großes Sprachmodell) <span class=\"emoji\">🗣️</span>"
+                answers: ["Lustiges Lern-Modell <span class=\"emoji\">😄</span>", "Langsames Logik-Modul <span class=\"emoji\">🐌</span>", "Large Language Model (Großes Sprachmodell) <span class=\"emoji\">🗣️</span>", "Letztes Lern-Moment <span class=\"emoji\">⏰</span>"],
+                correctAnswer: "Large Language Model (Großes Sprachmodell) <span class=\"emoji\">🗣️</span>",
+                category: 'tech',
+                hint: "Denk an ChatGPT. Wofür steht das 'LL'?"
             },
             {
                 question: "Was ist \"Overfitting\" bei Machine Learning?",
-                answers: [
-                    "Wenn die KI zu dick wird <span class=\"emoji\">🐷</span>",
-                    "Wenn das Modell die Trainingsdaten auswendig lernt, aber bei neuen Daten schlecht ist <span class=\"emoji\">📚</span>",
-                    "Wenn der Computer überhitzt <span class=\"emoji\">🔥</span>",
-                    "Wenn zu viele Parameter verwendet werden <span class=\"emoji\">⚙️</span>"
-                ],
-                correctAnswer: "Wenn das Modell die Trainingsdaten auswendig lernt, aber bei neuen Daten schlecht ist <span class=\"emoji\">📚</span>"
+                answers: ["Wenn die KI zu dick wird <span class=\"emoji\">🐷</span>", "Wenn das Modell die Trainingsdaten auswendig lernt, aber bei neuen Daten schlecht ist <span class=\"emoji\">📚</span>", "Wenn der Computer überhitzt <span class=\"emoji\">🔥</span>", "Wenn zu viele Parameter verwendet werden <span class=\"emoji\">⚙️</span>"],
+                correctAnswer: "Wenn das Modell die Trainingsdaten auswendig lernt, aber bei neuen Daten schlecht ist <span class=\"emoji\">📚</span>",
+                category: 'tech',
+                hint: "Es ist wie ein Schüler, der für den Test nur auswendig lernt, aber nichts verstanden hat."
             },
             {
                 question: "Was ist \"Reinforcement Learning\"?",
-                answers: [
-                    "Lernen durch Wiederholung <span class=\"emoji\">🔁</span>",
-                    "Lernen durch Belohnung und Bestrafung (wie beim Training eines Haustiers) <span class=\"emoji\">🐕</span>",
-                    "Lernen mit extra starkem Kaffee <span class=\"emoji\">☕</span>",
-                    "Lernen mit Verstärkung der Hardware <span class=\"emoji\">💻</span>"
-                ],
-                correctAnswer: "Lernen durch Belohnung und Bestrafung (wie beim Training eines Haustiers) <span class=\"emoji\">🐕</span>"
+                answers: ["Lernen durch Wiederholung <span class=\"emoji\">🔁</span>", "Lernen durch Belohnung und Bestrafung (wie beim Training eines Haustiers) <span class=\"emoji\">🐕</span>", "Lernen mit extra starkem Kaffee <span class=\"emoji\">☕</span>", "Lernen mit Verstärkung der Hardware <span class=\"emoji\">💻</span>"],
+                correctAnswer: "Lernen durch Belohnung und Bestrafung (wie beim Training eines Haustiers) <span class=\"emoji\">🐕</span>",
+                category: 'tech',
+                hint: "Denk an 'Gib Pfötchen'."
             },
             {
                 question: "Was bedeutet \"API\" und warum ist es für KI wichtig?",
-                answers: [
-                    "Artificial Programming Intelligence <span class=\"emoji\">🤖</span>",
-                    "Application Programming Interface - der \"Stecker\" um KI-Services zu nutzen <span class=\"emoji\">🔌</span>",
-                    "Advanced Process Integration <span class=\"emoji\">⚙️</span>",
-                    "Automatic Performance Indicator <span class=\"emoji\">📊</span>"
-                ],
-                correctAnswer: "Application Programming Interface - der \"Stecker\" um KI-Services zu nutzen <span class=\"emoji\">🔌</span>"
+                answers: ["Artificial Programming Intelligence <span class=\"emoji\">🤖</span>", "Application Programming Interface - der \"Stecker\" um KI-Services zu nutzen <span class=\"emoji\">🔌</span>", "Advanced Process Integration <span class=\"emoji\">⚙️</span>", "Automatic Performance Indicator <span class=\"emoji\">📊</span>"],
+                correctAnswer: "Application Programming Interface - der \"Stecker\" um KI-Services zu nutzen <span class=\"emoji\">🔌</span>",
+                category: 'tech',
+                hint: "Es ist eine Schnittstelle für Programme."
             },
             {
                 question: "Was ist ein \"Datensatz\" (Dataset) für eine KI?",
-                answers: [
-                    "Ein Rezeptbuch für Roboter <span class=\"emoji\">📖</span>",
-                    "Eine riesige Sammlung von Informationen zum Lernen (z.B. Texte, Bilder) <span class=\"emoji\">📚</span>",
-                    "Die Lieblings-Playlist der KI <span class=\"emoji\">🎶</span>",
-                    "Eine Liste von Befehlen <span class=\"emoji\">📜</span>"
-                ],
-                correctAnswer: "Eine riesige Sammlung von Informationen zum Lernen (z.B. Texte, Bilder) <span class=\"emoji\">📚</span>"
+                answers: ["Ein Rezeptbuch für Roboter <span class=\"emoji\">📖</span>", "Eine riesige Sammlung von Informationen zum Lernen (z.B. Texte, Bilder) <span class=\"emoji\">📚</span>", "Die Lieblings-Playlist der KI <span class=\"emoji\">🎶</span>", "Eine Liste von Befehlen <span class=\"emoji\">📜</span>"],
+                correctAnswer: "Eine riesige Sammlung von Informationen zum Lernen (z.B. Texte, Bilder) <span class=\"emoji\">📚</span>",
+                category: 'tech',
+                hint: "Womit füttert man eine KI, damit sie lernt?"
             },
             {
                 question: "Was ist \"Natural Language Processing\" (NLP)?",
-                answers: [
-                    "Die Fähigkeit, mit Pflanzen zu sprechen <span class=\"emoji\">🌿</span>",
-                    "Einer KI beibringen, menschliche Sprache zu verstehen und zu erzeugen <span class=\"emoji\">🗣️</span>",
-                    "Eine sehr komplizierte Art, \"Hallo Welt\" zu sagen <span class=\"emoji\">👋</span>",
-                    "Eine neue Yoga-Position für Programmierer <span class=\"emoji\">🧘</span>"
-                ],
-                correctAnswer: "Einer KI beibringen, menschliche Sprache zu verstehen und zu erzeugen <span class=\"emoji\">🗣️</span>"
+                answers: ["Die Fähigkeit, mit Pflanzen zu sprechen <span class=\"emoji\">🌿</span>", "Einer KI beibringen, menschliche Sprache zu verstehen und zu erzeugen <span class=\"emoji\">🗣️</span>", "Eine sehr komplizierte Art, \"Hallo Welt\" zu sagen <span class=\"emoji\">👋</span>", "Eine neue Yoga-Position für Programmierer <span class=\"emoji\">🧘</span>"],
+                correctAnswer: "Einer KI beibringen, menschliche Sprache zu verstehen und zu erzeugen <span class=\"emoji\">🗣️</span>",
+                category: 'tech',
+                hint: "Es geht um 'natürliche Sprache'."
             },
             {
                 question: "Was ist ein \"Algorithmus\" im Grunde?",
-                answers: [
-                    "Der Rhythmus, zu dem Roboter tanzen <span class=\"emoji\">💃</span>",
-                    "Ein sehr seltener Edelstein <span class=\"emoji\">💎</span>",
-                    "Eine Schritt-für-Schritt-Anleitung zur Lösung eines Problems <span class=\"emoji\">📜</span>",
-                    "Ein Fluch aus einem Fantasy-Roman <span class=\"emoji\">🧙</span>"
-                ],
-                correctAnswer: "Eine Schritt-für-Schritt-Anleitung zur Lösung eines Problems <span class=\"emoji\">📜</span>"
+                answers: ["Der Rhythmus, zu dem Roboter tanzen <span class=\"emoji\">💃</span>", "Ein sehr seltener Edelstein <span class=\"emoji\">💎</span>", "Eine Schritt-für-Schritt-Anleitung zur Lösung eines Problems <span class=\"emoji\">📜</span>", "Ein Fluch aus einem Fantasy-Roman <span class=\"emoji\">🧙</span>"],
+                correctAnswer: "Eine Schritt-für-Schritt-Anleitung zur Lösung eines Problems <span class=\"emoji\">📜</span>",
+                category: 'tech',
+                hint: "Denk an ein Kochrezept."
             },
             {
                 question: "Was ist \"Computer Vision\"?",
-                answers: [
-                    "Eine Brille für den Computer <span class=\"emoji\">👓</span>",
-                    "Der KI beibringen, Bilder und Videos zu \"sehen\" und zu interpretieren <span class=\"emoji\">👁️</span>",
-                    "Ein Bildschirmschoner mit Augen <span class=\"emoji\">👀</span>",
-                    "Wenn der Computer dich beim Nichtstun beobachtet <span class=\"emoji\">🤫</span>"
-                ],
-                correctAnswer: "Der KI beibringen, Bilder und Videos zu \"sehen\" und zu interpretieren <span class=\"emoji\">👁️</span>"
+                answers: ["Eine Brille für den Computer <span class=\"emoji\">👓</span>", "Der KI beibringen, Bilder und Videos zu \"sehen\" und zu interpretieren <span class=\"emoji\">👁️</span>", "Ein Bildschirmschoner mit Augen <span class=\"emoji\">👀</span>", "Wenn der Computer dich beim Nichtstun beobachtet <span class=\"emoji\">🤫</span>"],
+                correctAnswer: "Der KI beibringen, Bilder und Videos zu \"sehen\" und zu interpretieren <span class=\"emoji\">👁️</span>",
+                category: 'tech',
+                hint: "Es geht um das 'Sehen' von Computern."
             },
             {
                 question: "Was ist der \"Turing-Test\"?",
-                answers: [
-                    "Ein Test, ob ein Toaster schlau genug ist <span class=\"emoji\">🍞</span>",
-                    "Ein Test, um festzustellen, ob eine KI von einem Menschen nicht zu unterscheiden ist <span class=\"emoji\">🤔</span>",
-                    "Der Führerscheintest für Roboter <span class=\"emoji\">🚗</span>",
-                    "Ein sehr schweres Sudoku <span class=\"emoji\">🔢</span>"
-                ],
-                correctAnswer: "Ein Test, um festzustellen, ob eine KI von einem Menschen nicht zu unterscheiden ist <span class=\"emoji\">🤔</span>"
+                answers: ["Ein Test, ob ein Toaster schlau genug ist <span class=\"emoji\">🍞</span>", "Ein Test, um festzustellen, ob eine KI von einem Menschen nicht zu unterscheiden ist <span class=\"emoji\">🤔</span>", "Der Führerscheintest für Roboter <span class=\"emoji\">🚗</span>", "Ein sehr schweres Sudoku <span class=\"emoji\">🔢</span>"],
+                correctAnswer: "Ein Test, um festzustellen, ob eine KI von einem Menschen nicht zu unterscheiden ist <span class=\"emoji\">🤔</span>",
+                category: 'tech',
+                hint: "Er wurde von einem berühmten britischen Mathematiker erfunden."
             },
             {
                 question: "Was ist der Hauptunterschied zwischen \"Supervised\" und \"Unsupervised Learning\"?",
-                answers: [
-                    "Mit oder ohne die Aufsicht eines erwachsenen Programmierers <span class=\"emoji\">🧑‍🏫</span>",
-                    "Supervised lernt mit beschrifteten Daten (Input & korrekter Output), Unsupervised sucht Muster in unbeschrifteten Daten <span class=\"emoji\">🏷️</span>",
-                    "Supervised ist für brave KIs, Unsupervised für rebellische <span class=\"emoji\">😈</span>",
-                    "Eines ist für den Tag, das andere für die Nacht <span class=\"emoji\">🌞🌜</span>"
-                ],
-                correctAnswer: "Supervised lernt mit beschrifteten Daten (Input & korrekter Output), Unsupervised sucht Muster in unbeschrifteten Daten <span class=\"emoji\">🏷️</span>"
+                answers: ["Mit oder ohne die Aufsicht eines erwachsenen Programmierers <span class=\"emoji\">🧑‍🏫</span>", "Supervised lernt mit beschrifteten Daten (Input & korrekter Output), Unsupervised sucht Muster in unbeschrifteten Daten <span class=\"emoji\">🏷️</span>", "Supervised ist für brave KIs, Unsupervised für rebellische <span class=\"emoji\">😈</span>", "Eines ist für den Tag, das andere für die Nacht <span class=\"emoji\">🌞🌜</span>"],
+                correctAnswer: "Supervised lernt mit beschrifteten Daten (Input & korrekter Output), Unsupervised sucht Muster in unbeschrifteten Daten <span class=\"emoji\">🏷️</span>",
+                category: 'tech',
+                hint: "Das eine hat einen 'Lehrer', das andere nicht."
             },
-            { // This question was changed to remove redundancy
+            {
                 question: "Was bedeutet \"Bias\" (Verzerrung) in der KI?",
-                answers: [
-                    "Der Lieblings-Radiosender der KI <span class=\"emoji\">📻</span>",
-                    "Eine systematische Voreingenommenheit, die zu unfairen Ergebnissen führt <span class=\"emoji\">⚖️</span>",
-                    "Ein technischer Fehler in der Hardware <span class=\"emoji\">⚙️</span>",
-                    "Die Neigung der KI, immer 'bitte' und 'danke' zu sagen <span class=\"emoji\">😇</span>"
-                ],
-                correctAnswer: "Eine systematische Voreingenommenheit, die zu unfairen Ergebnissen führt <span class=\"emoji\">⚖️</span>"
+                answers: ["Der Lieblings-Radiosender der KI <span class=\"emoji\">📻</span>", "Eine systematische Voreingenommenheit, die zu unfairen Ergebnissen führt <span class=\"emoji\">⚖️</span>", "Ein technischer Fehler in der Hardware <span class=\"emoji\">⚙️</span>", "Die Neigung der KI, immer 'bitte' und 'danke' zu sagen <span class=\"emoji\">😇</span>"],
+                correctAnswer: "Eine systematische Voreingenommenheit, die zu unfairen Ergebnissen führt <span class=\"emoji\">⚖️</span>",
+                category: 'tech',
+                hint: "Es ist ein großes ethisches Problem in der KI-Entwicklung."
             },
-            // Harder Questions
             {
                 question: "Welche Aktivierungsfunktion ist berühmt dafür, das \"Vanishing Gradient\" Problem teilweise zu lösen?",
-                answers: [
-                    "Sigmoid - die alte Diva <span class=\"emoji\">👑</span>",
-                    "Tanh - die Gestreckte <span class=\"emoji\">🤸</span>",
-                    "ReLU (Rectified Linear Unit) - die einfache, aber effektive <span class=\"emoji\">💡</span>",
-                    "Softmax - die Unentschlossene <span class=\"emoji\">🤔</span>"
-                ],
-                correctAnswer: "ReLU (Rectified Linear Unit) - die einfache, aber effektive <span class=\"emoji\">💡</span>"
+                answers: ["Sigmoid - die alte Diva <span class=\"emoji\">👑</span>", "Tanh - die Gestreckte <span class=\"emoji\">🤸</span>", "ReLU (Rectified Linear Unit) - die einfache, aber effektive <span class=\"emoji\">💡</span>", "Softmax - die Unentschlossene <span class=\"emoji\">🤔</span>"],
+                correctAnswer: "ReLU (Rectified Linear Unit) - die einfache, aber effektive <span class=\"emoji\">💡</span>",
+                category: 'expert',
+                hint: "Einfachheit ist oft der Schlüssel. Diese Funktion ist sehr simpel."
             },
             {
                 question: "Was ist ein GAN (Generative Adversarial Network)?",
-                answers: [
-                    "Ein sehr wütendes Netzwerk <span class=\"emoji\">😠</span>",
-                    "Zwei neuronale Netze (Generator & Diskriminator), die gegeneinander antreten, um Daten zu erzeugen <span class=\"emoji\">🎨</span>",
-                    "Ein KI-Fanclub <span class=\"emoji\">🎉</span>",
-                    "Eine Gruppe von Hackern <span class=\"emoji\">💻</span>"
-                ],
-                correctAnswer: "Zwei neuronale Netze (Generator & Diskriminator), die gegeneinander antreten, um Daten zu erzeugen <span class=\"emoji\">🎨</span>"
+                answers: ["Ein sehr wütendes Netzwerk <span class=\"emoji\">😠</span>", "Zwei neuronale Netze (Generator & Diskriminator), die gegeneinander antreten, um Daten zu erzeugen <span class=\"emoji\">🎨</span>", "Ein KI-Fanclub <span class=\"emoji\">🎉</span>", "Eine Gruppe von Hackern <span class=\"emoji\">💻</span>"],
+                correctAnswer: "Zwei neuronale Netze (Generator & Diskriminator), die gegeneinander antreten, um Daten zu erzeugen <span class=\"emoji\">🎨</span>",
+                category: 'expert',
+                hint: "Es ist ein Wettstreit zwischen einem Fälscher und einem Detektiv."
             },
             {
                 question: "Was beschreibt die Forschungsarbeit \"Attention Is All You Need\" primär?",
-                answers: [
-                    "Ein Plädoyer für mehr Aufmerksamkeit im Büro <span class=\"emoji\">☕</span>",
-                    "Die Notwendigkeit, der KI beim Lernen zuzuhören <span class=\"emoji\">👂</span>",
-                    "Die Einführung der Transformer-Architektur, die auf Self-Attention basiert <span class=\"emoji\">🤖</span>",
-                    "Eine Anleitung für achtsames Programmieren <span class=\"emoji\">🧘</span>"
-                ],
-                correctAnswer: "Die Einführung der Transformer-Architektur, die auf Self-Attention basiert <span class=\"emoji\">🤖</span>"
+                answers: ["Ein Plädoyer für mehr Aufmerksamkeit im Büro <span class=\"emoji\">☕</span>", "Die Notwendigkeit, der KI beim Lernen zuzuhören <span class=\"emoji\">👂</span>", "Die Einführung der Transformer-Architektur, die auf Self-Attention basiert <span class=\"emoji\">🤖</span>", "Eine Anleitung für achtsames Programmieren <span class=\"emoji\">🧘</span>"],
+                correctAnswer: "Die Einführung der Transformer-Architektur, die auf Self-Attention basiert <span class=\"emoji\">🤖</span>",
+                category: 'expert',
+                hint: "Der Titel ist Programm. Es geht um einen Mechanismus namens 'Attention'."
             },
             {
                 question: "Was misst die \"Perplexität\" (Perplexity) bei Sprachmodellen?",
-                answers: [
-                    "Wie oft die KI \"Ähm...\" sagt <span class=\"emoji\">🗣️</span>",
-                    "Wie \"verwirrt\" oder unsicher ein Modell bei der Vorhersage des nächsten Wortes ist (weniger ist besser) <span class=\"emoji\">🤯</span>",
-                    "Die Fähigkeit der KI, komplexe Witze zu verstehen <span class=\"emoji\">😂</span>",
-                    "Den Stromverbrauch des Modells <span class=\"emoji\">🔌</span>"
-                ],
-                correctAnswer: "Wie \"verwirrt\" oder unsicher ein Modell bei der Vorhersage des nächsten Wortes ist (weniger ist besser) <span class=\"emoji\">🤯</span>"
+                answers: ["Wie oft die KI \"Ähm...\" sagt <span class=\"emoji\">🗣️</span>", "Wie \"verwirrt\" oder unsicher ein Modell bei der Vorhersage des nächsten Wortes ist (weniger ist besser) <span class=\"emoji\">🤯</span>", "Die Fähigkeit der KI, komplexe Witze zu verstehen <span class=\"emoji\">😂</span>", "Den Stromverbrauch des Modells <span class=\"emoji\">🔌</span>"],
+                correctAnswer: "Wie \"verwirrt\" oder unsicher ein Modell bei der Vorhersage des nächsten Wortes ist (weniger ist besser) <span class=\"emoji\">🤯</span>",
+                category: 'expert',
+                hint: "Ein perplexes Modell ist kein gutes Modell."
             },
             {
                 question: "Was ist \"Tokenization\" im Kontext von LLMs?",
-                answers: [
-                    "Das Sammeln von digitalen Münzen <span class=\"emoji\">🪙</span>",
-                    "Das Aufteilen von Text in kleinere Einheiten (Wörter, Silben), die die KI versteht <span class=\"emoji\">🧩</span>",
-                    "Ein Sicherheitsverfahren für Logins <span class=\"emoji\">🔑</span>",
-                    "Der KI einen Spitznamen geben <span class=\"emoji\">📛</span>"
-                ],
-                correctAnswer: "Das Aufteilen von Text in kleinere Einheiten (Wörter, Silben), die die KI versteht <span class=\"emoji\">🧩</span>"
+                answers: ["Das Sammeln von digitalen Münzen <span class=\"emoji\">🪙</span>", "Das Aufteilen von Text in kleinere Einheiten (Wörter, Silben), die die KI versteht <span class=\"emoji\">🧩</span>", "Ein Sicherheitsverfahren für Logins <span class=\"emoji\">🔑</span>", "Der KI einen Spitznamen geben <span class=\"emoji\">📛</span>"],
+                correctAnswer: "Das Aufteilen von Text in kleinere Einheiten (Wörter, Silben), die die KI versteht <span class=\"emoji\">🧩</span>",
+                category: 'expert',
+                hint: "Wie 'frisst' ein großes Sprachmodell einen Satz?"
             }
         ];
 
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let userName = "";
+        let currentQuestionIndex = 0, score = 0, userName = "";
         const totalQuestions = questions.length;
+        let categoryScores = { humor: 0, tech: 0, expert: 0 };
+        let categoryTotals = { humor: 0, tech: 0, expert: 0 };
+        let fiftyFiftyUsed = false, expertJokerUsed = false, antennaClicks = 0;
+
+        const correctSound = document.getElementById('correct-sound');
+        const wrongSound = document.getElementById('wrong-sound');
+        const mascot = document.getElementById('mascot');
+        
+        questions.forEach(q => { if(q.category) categoryTotals[q.category]++; });
 
         function checkPassword() {
-            const passwordInput = document.getElementById('passwordInput');
-            const passwordError = document.getElementById('passwordError');
-            if (passwordInput.value === '#Quizkönig25') {
+            if (document.getElementById('passwordInput').value === '#Quizkönig25') {
                 document.getElementById('passwordScreen').style.display = 'none';
                 document.getElementById('nameScreen').style.display = 'block';
             } else {
-                passwordError.style.display = 'block';
+                document.getElementById('passwordError').style.display = 'block';
             }
         }
-
-        function startQuiz() {
-            const nameInput = document.getElementById('nameInput');
-            if (nameInput.value.trim() === "") {
+        
+        function showThemeSelection() {
+             if (document.getElementById('nameInput').value.trim() === "") {
                 alert("Bitte gib einen Namen ein!");
                 return;
             }
-            userName = nameInput.value.trim();
+            userName = document.getElementById('nameInput').value.trim();
             document.getElementById('nameScreen').style.display = 'none';
+            document.getElementById('themeScreen').style.display = 'block';
+        }
+
+        function startQuiz(theme) {
+            document.body.className = theme;
+            document.getElementById('themeScreen').style.display = 'none';
             document.getElementById('quizWrapper').style.display = 'block';
-            document.getElementById('quizSubtitle').textContent = `Viel Glück, ${userName}! Mal sehen, was du drauf hast.`;
+            const subtitle = document.getElementById('quizSubtitle');
+            subtitle.innerHTML = `Viel Glück, ${userName}! <br><small style="color: #c0392b;">Achtung: Wer unter 20 Punkte erreicht, gibt ein Eis aus! 🍦</small>`;
             loadQuestion();
         }
         
@@ -685,32 +702,13 @@
         }
 
         function loadQuestion() {
-            if (currentQuestionIndex >= totalQuestions) {
-                showResults();
-                return;
-            }
-
+            if (currentQuestionIndex >= totalQuestions) { showResults(); return; }
+            mascot.className = '';
             const questionData = questions[currentQuestionIndex];
             const questionArea = document.getElementById('questionArea');
             const shuffledAnswers = shuffleArray([...questionData.answers]);
-
-            let answersHtml = shuffledAnswers.map(answer => {
-                const isCorrect = answer === questionData.correctAnswer;
-                return `<button class="answer" data-correct="${isCorrect}" onclick="selectAnswer(this)">${answer}</button>`
-            }).join('');
-
-            questionArea.innerHTML = `
-                <div class="question-container active">
-                    <div class="question">
-                        <div class="question-number">Frage ${currentQuestionIndex + 1} von ${totalQuestions}</div>
-                        ${questionData.question}
-                    </div>
-                    <div class="answers">
-                        ${answersHtml}
-                    </div>
-                </div>
-            `;
-            
+            let answersHtml = shuffledAnswers.map(answer => `<button class="answer" data-correct="${answer === questionData.correctAnswer}" onclick="selectAnswer(this)">${answer}</button>`).join('');
+            questionArea.innerHTML = `<div class="question-container active"><div class="question"><div class="question-number">Frage ${currentQuestionIndex + 1} von ${totalQuestions}</div>${questionData.question}</div><div class="answers">${answersHtml}</div></div>`;
             updateProgress();
             updateScore();
             document.getElementById('nextBtn').style.display = 'none';
@@ -718,90 +716,114 @@
 
         function selectAnswer(button) {
             const isCorrect = button.getAttribute('data-correct') === 'true';
-            const parent = button.parentElement;
-            const allAnswers = parent.querySelectorAll('.answer');
-
-            allAnswers.forEach(ans => {
-                ans.disabled = true;
-                if (ans.getAttribute('data-correct') === 'true') {
-                    ans.classList.add('correct');
-                } else {
-                    ans.classList.add('wrong');
-                }
+            document.querySelectorAll('.answer').forEach(btn => {
+                btn.disabled = true;
+                if (btn.getAttribute('data-correct') === 'true') btn.classList.add('correct');
+                else btn.classList.add('wrong');
             });
+            
+            const motivationMessageEl = document.getElementById('motivationMessage');
+            let message = '';
+            motivationMessageEl.classList.remove('correct', 'wrong');
 
             if (isCorrect) {
                 score++;
+                const category = questions[currentQuestionIndex].category;
+                if(category) categoryScores[category]++;
+                message = ["Stark!", "Genial!", "Exzellent!", "Wow!", "Perfekt!"][Math.floor(Math.random() * 5)];
+                motivationMessageEl.classList.add('correct');
+                correctSound.play().catch(e => {});
+                triggerConfetti();
+                mascot.classList.add('happy');
+            } else {
+                message = ["Knapp daneben!", "Uff, knifflig.", "Nicht ganz!", "Fast...", "Komm schon!"][Math.floor(Math.random() * 5)];
+                motivationMessageEl.classList.add('wrong');
+                wrongSound.play().catch(e => {});
+                mascot.classList.add('thinking');
             }
             
             updateScore();
-            
-            const nextBtn = document.getElementById('nextBtn');
-            if (currentQuestionIndex === totalQuestions - 1) {
-                nextBtn.textContent = "Ergebnis zeigen";
+            if(currentQuestionIndex < totalQuestions -1) {
+                motivationMessageEl.textContent = message;
+                motivationMessageEl.classList.add('visible');
             }
-            nextBtn.style.display = 'block';
+            document.getElementById('nextBtn').textContent = (currentQuestionIndex === totalQuestions - 1) ? "Ergebnis zeigen" : "Weiter";
+            document.getElementById('nextBtn').style.display = 'block';
         }
 
         function nextQuestion() {
-            currentQuestionIndex++;
-            loadQuestion();
+            document.getElementById('motivationMessage').classList.remove('visible');
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 500); 
         }
 
-        function updateProgress() {
-            const progress = ((currentQuestionIndex) / totalQuestions) * 100;
-            document.getElementById('progress').style.width = progress + '%';
+        function useFiftyFifty() {
+            if (fiftyFiftyUsed) return;
+            const answers = Array.from(document.querySelectorAll('.answer'));
+            const wrongAnswers = answers.filter(a => a.getAttribute('data-correct') === 'false');
+            shuffleArray(wrongAnswers).slice(0, 2).forEach(a => a.classList.add('hidden'));
+            fiftyFiftyUsed = true;
+            document.getElementById('joker5050').disabled = true;
         }
 
-        function updateScore() {
-            document.getElementById('scoreDisplay').textContent = `Punkte: ${score} / ${totalQuestions}`;
+        function useExpertJoker() {
+            if (expertJokerUsed) return;
+            const hint = questions[currentQuestionIndex].hint || "Hierfür habe ich leider keinen Tipp.";
+            const hintBubble = document.getElementById('hintBubble');
+            hintBubble.textContent = hint;
+            hintBubble.classList.add('visible');
+            setTimeout(() => hintBubble.classList.remove('visible'), 3000);
+            expertJokerUsed = true;
+            document.getElementById('jokerExpert').disabled = true;
         }
 
         function showResults() {
-            document.getElementById('questionArea').style.display = 'none';
-            document.getElementById('nextBtn').style.display = 'none';
-            document.querySelector('.quiz-header').style.display = 'none';
-            document.querySelector('.progress-bar').style.display = 'none';
-            document.querySelector('.score-display').style.display = 'none';
-            
+            document.getElementById('quizWrapper').style.display = 'none';
             const resultContainer = document.getElementById('resultContainer');
-            const finalScore = document.getElementById('finalScore');
-            const resultMessage = document.getElementById('resultMessage');
-
-            finalScore.textContent = `Dein Ergebnis: ${score} / ${totalQuestions}`;
-
+            document.getElementById('finalScore').textContent = `Dein Ergebnis: ${score} / ${totalQuestions}`;
             let message = '';
-            if (score >= 27) {
-                message = `🏆 KI-Großmeister! Absolut brillant, ${userName}! Du bist bereit, die Weltherrschaft... äh, die nächste KI-Revolution anzuführen!`;
+            if (score < 20) {
+                 message = `Uff, ${userName}, das war knapp! Das macht dann ein Eis für das ganze Team! 🍦 Trotzdem gut gekämpft!`;
+            } else if (score >= 27) {
+                message = `🏆 KI-Großmeister! Absolut brillant, ${userName}!`;
             } else if (score >= 22) {
-                message = `🚀 KI-Experte! Wow, ${userName}! Du kennst dich sowohl mit dem Witz als auch mit der Technik bestens aus!`;
-            } else if (score >= 15) {
-                message = `😄 Sehr gut, ${userName}! Du hast ein solides Verständnis für die KI-Welt und ihren Humor!`;
-            } else if (score >= 8) {
-                message = `😊 Gut gemacht, ${userName}! Du hast die Grundlagen drauf. Weiter so!`;
+                message = `🚀 KI-Experte! Wow, ${userName}!`;
             } else {
-                message = `😅 Hey ${userName}, jeder fängt mal an! Selbst GPT-1 war nicht perfekt beim ersten Versuch!`;
+                message = `😄 Sehr gut, ${userName}! Eis-Wette gewonnen!`;
             }
-
-            resultMessage.textContent = message;
+            document.getElementById('resultMessage').textContent = message;
+            document.getElementById('detailedAnalysis').innerHTML = `<h4>Deine Detail-Analyse:</h4><p>KI-Humor: ${categoryScores.humor}/${categoryTotals.humor}</p><p>Technik-Wissen: ${categoryScores.tech}/${categoryTotals.tech}</p><p>Experten-Fragen: ${categoryScores.expert}/${categoryTotals.expert}</p>`;
+            updateHighscore(userName, score);
+            displayHighscores();
             resultContainer.style.display = 'block';
+            document.getElementById('download-btn').style.display = 'block';
         }
-
-        function restartQuiz() {
-            currentQuestionIndex = 0;
-            score = 0;
-            
-            document.getElementById('resultContainer').style.display = 'none';
-            document.getElementById('questionArea').style.display = 'block';
-            document.querySelector('.quiz-header').style.display = 'block';
-            document.querySelector('.progress-bar').style.display = 'block';
-            document.querySelector('.score-display').style.display = 'block';
-            document.getElementById('nextBtn').textContent = "Weiter";
-            
-            loadQuestion();
+        
+        function downloadResultCard() {
+            const card = document.getElementById('result-card');
+            html2canvas(card).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `mario-ki-quiz-ergebnis-${userName}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
         }
+        
+        document.getElementById('mascot-antenna').addEventListener('click', () => {
+            antennaClicks++;
+            if (antennaClicks === 10) {
+                alert("Easter Egg! Warum hat die KI den Job bekommen? Weil sie alle Anforderungen... prozessiert hat!");
+                antennaClicks = 0;
+            }
+        });
 
-        // Initial setup
+        function updateProgress() { document.getElementById('progress').style.width = ((currentQuestionIndex) / totalQuestions) * 100 + '%'; }
+        function updateScore() { document.getElementById('scoreDisplay').textContent = `Punkte: ${score} / ${totalQuestions}`; }
+        function updateHighscore(name, score) { const highscores = JSON.parse(localStorage.getItem('kiQuizHighscores')) || []; highscores.push({ name, score }); highscores.sort((a, b) => b.score - a.score); highscores.splice(5); localStorage.setItem('kiQuizHighscores', JSON.stringify(highscores)); }
+        function displayHighscores() { const highscores = JSON.parse(localStorage.getItem('kiQuizHighscores')) || []; document.getElementById('highscore-list').innerHTML = highscores.map(entry => `<li><span>${entry.name}</span><span>${entry.score} Pkt.</span></li>`).join(''); }
+        const confettiCanvas = document.getElementById('confetti-canvas'); const confettiCtx = confettiCanvas.getContext('2d'); let confettiParticles = []; function triggerConfetti() { confettiParticles = []; for (let i = 0; i < 100; i++) { confettiParticles.push({ x: confettiCanvas.width / 2, y: confettiCanvas.height / 2, color: `hsl(${Math.random() * 360}, 100%, 50%)`, radius: Math.random() * 3 + 2, vx: Math.random() * 10 - 5, vy: Math.random() * -15 - 5, alpha: 1 }); } animateConfetti(); } function animateConfetti() { confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); confettiParticles.forEach((p, index) => { p.vy += 0.4; p.x += p.vx; p.y += p.vy; p.alpha -= 0.02; if (p.alpha <= 0) { confettiParticles.splice(index, 1); } else { confettiCtx.globalAlpha = p.alpha; confettiCtx.beginPath(); confettiCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); confettiCtx.fillStyle = p.color; confettiCtx.fill(); } }); if (confettiParticles.length > 0) { requestAnimationFrame(animateConfetti); } else { confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); } } window.onresize = () => { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }; window.onresize();
         document.getElementById('scoreDisplay').textContent = `Punkte: 0 / ${totalQuestions}`;
     </script>
 </body>
