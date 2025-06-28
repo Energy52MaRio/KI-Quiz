@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Das witzigste KI-Quiz aller Zeiten 🤖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
+            background-size: 300% 300%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .quiz-title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .quiz-subtitle {
+            font-size: 1.2em;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        .question-container {
+            display: none;
+            animation: slideIn 0.5s ease-in-out;
+        }
+
+        .question-container.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .question {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            font-size: 1.3em;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .question-number {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .answers {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .answer {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .answer:active {
+            transform: scale(0.98);
+        }
+
+        .answer.correct {
+            background: linear-gradient(135deg, #00b894 0%, #55a3ff 100%);
+            color: white;
+            animation: correctPulse 0.6s ease;
+        }
+
+        .answer.wrong {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            animation: wrongShake 0.6s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .next-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            display: none;
+            margin: 0 auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .progress-bar {
+            background: rgba(0,0,0,0.1);
+            height: 10px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .score-display {
+            text-align: center;
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .result-container {
+            display: none;
+            text-align: center;
+            animation: bounceIn 0.8s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .result-title {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .result-score {
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .result-message {
+            font-size: 1.3em;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #00b894 0%, #55a3ff 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .fun-fact {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-style: italic;
+            border-left: 5px solid #e17055;
+        }
+
+        .emoji {
+            font-size: 1.5em;
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h1 class="quiz-title">Das witzigste KI-Quiz aller Zeiten <span class="emoji">🤖</span></h1>
+            <p class="quiz-subtitle">Wie gut kennst du die lustigen Seiten der Künstlichen Intelligenz?</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <div class="score-display" id="scoreDisplay">Punkte: 0 / 20</div>
+
+        <!-- Fragen Container -->
+        <div class="question-container active" data-question="0">
+            <div class="question">
+                <div class="question-number">Frage 1 von 10</div>
+                Was ist die häufigste "Entschuldigung" von KI-Systemen, wenn sie einen Fehler machen?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">"Das war ein Feature, kein Bug!" <span class="emoji">🐛</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">"Es tut mir leid, als KI kann ich keine Gefühle haben, aber wenn ich könnte, wäre ich traurig." <span class="emoji">😢</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Haben Sie versucht, mich aus- und wieder einzuschalten?" <span class="emoji">🔌</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Das liegt an der Mondphase." <span class="emoji">🌙</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="1">
+            <div class="question">
+                <div class="question-number">Frage 2 von 10</div>
+                Welche Aussage würde eine KI niemals über sich selbst machen?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">"Ich bin nur so intelligent wie meine Trainingsdaten." <span class="emoji">📚</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">"Ich habe heute schlecht geschlafen und bin deshalb müde." <span class="emoji">😴</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Ich kann nicht alles wissen." <span class="emoji">🤷</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Manchmal mache ich Fehler." <span class="emoji">🤖</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="2">
+            <div class="question">
+                <div class="question-number">Frage 3 von 10</div>
+                Was ist der lustigste Grund, warum eine KI nicht versteht, was ein Mensch will?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, true)">"Bitte erstelle mir ein Sandwich" - KI antwortet mit einem Bild von einem Sandwich <span class="emoji">🥪</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Zu viele technische Begriffe verwendet <span class="emoji">💻</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Schlechte Internetverbindung <span class="emoji">📶</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Falsche Programmiersprache gewählt <span class="emoji">💾</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="3">
+            <div class="question">
+                <div class="question-number">Frage 4 von 10</div>
+                Welche "Superkraft" hätte eine KI am liebsten?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Fliegen können <span class="emoji">✈️</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Endlich verstehen, warum Menschen "Es ist kompliziert" als Beziehungsstatus wählen <span class="emoji">💔</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Unsichtbar werden <span class="emoji">👻</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Gedanken lesen <span class="emoji">🧠</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="4">
+            <div class="question">
+                <div class="question-number">Frage 5 von 10</div>
+                Was ist das größte "Missverständnis" zwischen KI und Menschen?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">KI denkt, Menschen sind zu langsam <span class="emoji">🐌</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Menschen denken, KI versteht Sarkasmus (spoiler: tut sie nicht) <span class="emoji">🙄</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">KI mag keine Katzenvideos <span class="emoji">🐱</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Menschen haben Angst vor Robotern <span class="emoji">🤖</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="5">
+            <div class="question">
+                <div class="question-number">Frage 6 von 10</div>
+                Welcher KI-Chatbot-Name wäre am witzigsten?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">SmartBot 3000 <span class="emoji">🚀</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">ChitChatGPT (für belanglose Gespräche) <span class="emoji">💬</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">AI-Einstein <span class="emoji">🧑‍🔬</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">RoboHelper <span class="emoji">🤖</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="6">
+            <div class="question">
+                <div class="question-number">Frage 7 von 10</div>
+                Was wäre die lustigste KI-Fehlermeldung?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">"Fehler 404: Gehirn nicht gefunden" <span class="emoji">🧠</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">"Ich verstehe die Frage nicht. Haben Sie versucht, sie höflicher zu stellen?" <span class="emoji">😇</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"System überlastet durch zu viele Katzenbilder" <span class="emoji">🐈</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Akku leer - brauche Kaffee" <span class="emoji">☕</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="7">
+            <div class="question">
+                <div class="question-number">Frage 8 von 10</div>
+                Welche Antwort gibt eine KI auf die Frage "Erzähl mir einen Witz"?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, true)">"Warum ist KI immer müde? Weil sie ständig lernt und nie Schlaf-Modus hat!" <span class="emoji">😴</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Ich kann keine Witze erzählen." <span class="emoji">🚫</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Was ist ein Witz?" <span class="emoji">❓</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"*sendet Wikipedia-Link zu 'Humor'*" <span class="emoji">📖</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="8">
+            <div class="question">
+                <div class="question-number">Frage 9 von 10</div>
+                Was ist die witzigste Art, wie eine KI versucht "menschlich" zu wirken?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Tippfehler absichtlich einbauen <span class="emoji">⌨️</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">"Hmm, lass mich nachdenken..." (obwohl sie in 0,001 Sekunden geantwortet hat) <span class="emoji">🤔</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Emoticons verwenden <span class="emoji">😊</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Über das Wetter sprechen <span class="emoji">🌤️</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="9">
+            <div class="question">
+                <div class="question-number">Frage 10 von 20</div>
+                Was wäre das perfekte KI-Motto?
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">"Schnell, stark, smart" <span class="emoji">💪</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">"Ich bin hier, um zu helfen - auch wenn du nicht weißt, wobei!" <span class="emoji">🤝</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Die Zukunft ist jetzt" <span class="emoji">🚀</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">"Algorithmus ist alles" <span class="emoji">🔢</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <!-- Technische Fragen beginnen hier -->
+        <div class="question-container" data-question="10">
+            <div class="question">
+                <div class="question-number">Frage 11 von 20</div>
+                Was bedeutet "GPU" und warum braucht KI sie so dringend? <span class="emoji">💻</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Great Programming Unit - für besseren Code <span class="emoji">💾</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Graphics Processing Unit - perfekt für parallele Berechnungen beim Training <span class="emoji">⚡</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">General Purpose Unit - macht alles gleichzeitig <span class="emoji">🔧</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Gigantic Processing Unit - einfach sehr groß <span class="emoji">📏</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="11">
+            <div class="question">
+                <div class="question-number">Frage 12 von 20</div>
+                Was ist ein "Neuronales Netzwerk" wirklich? <span class="emoji">🧠</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Ein WLAN für sehr intelligente Geräte <span class="emoji">📶</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Mathematische Funktionen, die (sehr grob) das Gehirn nachahmen <span class="emoji">🔢</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Ein soziales Netzwerk für Roboter <span class="emoji">🤖</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Kabel, die Computer miteinander verbinden <span class="emoji">🔌</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="12">
+            <div class="question">
+                <div class="question-number">Frage 13 von 20</div>
+                Was ist "Machine Learning" auf Deutsch? <span class="emoji">🎓</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Maschinelles Lehren <span class="emoji">👨‍🏫</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Maschinelles Lernen <span class="emoji">📚</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Maschinen-Universität <span class="emoji">🎓</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Roboter-Schule <span class="emoji">🏫</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="13">
+            <div class="question">
+                <div class="question-number">Frage 14 von 20</div>
+                Was ist der Unterschied zwischen "Training" und "Inference" bei KI? <span class="emoji">🏋️</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, true)">Training = Lernen mit Daten, Inference = Anwenden des Gelernten <span class="emoji">💡</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Training = Sport für Roboter, Inference = Rätsel lösen <span class="emoji">🏃</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Training = Programmieren, Inference = Debuggen <span class="emoji">🐛</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Ist das Gleiche, nur andere Wörter <span class="emoji">🤷</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="14">
+            <div class="question">
+                <div class="question-number">Frage 15 von 20</div>
+                Was sind "Parameter" in einem KI-Modell? <span class="emoji">⚙️</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Die Einstellungen im Optionsmenü <span class="emoji">⚙️</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Millionen von Zahlen, die das "Wissen" der KI speichern <span class="emoji">🔢</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Die Geschwindigkeit der KI <span class="emoji">⚡</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Die Größe des Bildschirms <span class="emoji">📺</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="15">
+            <div class="question">
+                <div class="question-number">Frage 16 von 20</div>
+                Was bedeutet "LLM" in der KI-Welt? <span class="emoji">📝</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Lustiges Lern-Modell <span class="emoji">😄</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Langsames Logik-Modul <span class="emoji">🐌</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Large Language Model (Großes Sprachmodell) <span class="emoji">🗣️</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Letztes Lern-Moment <span class="emoji">⏰</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="16">
+            <div class="question">
+                <div class="question-number">Frage 17 von 20</div>
+                Was ist "Overfitting" bei Machine Learning? <span class="emoji">🎯</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Wenn die KI zu dick wird <span class="emoji">🐷</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Wenn das Modell die Trainingsdaten auswendig lernt, aber bei neuen Daten schlecht ist <span class="emoji">📚</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Wenn der Computer überhitzt <span class="emoji">🔥</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Wenn zu viele Parameter verwendet werden <span class="emoji">⚙️</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="17">
+            <div class="question">
+                <div class="question-number">Frage 18 von 20</div>
+                Was macht ein "Transformer" in der KI (nicht der Roboter)? <span class="emoji">🔄</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Verwandelt Daten in andere Formate <span class="emoji">🔄</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Eine spezielle Architektur für Aufmerksamkeit (Attention) in Sprachmodellen <span class="emoji">👁️</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Macht aus Text Bilder <span class="emoji">🖼️</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Übersetzt zwischen Programmiersprachen <span class="emoji">🔤</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="18">
+            <div class="question">
+                <div class="question-number">Frage 19 von 20</div>
+                Was ist "Reinforcement Learning"? <span class="emoji">🎮</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Lernen durch Wiederholung <span class="emoji">🔁</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Lernen durch Belohnung und Bestrafung (wie beim Training eines Haustiers) <span class="emoji">🐕</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Lernen mit extra starkem Kaffee <span class="emoji">☕</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Lernen mit Verstärkung der Hardware <span class="emoji">💻</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Weiter</button>
+        </div>
+
+        <div class="question-container" data-question="19">
+            <div class="question">
+                <div class="question-number">Frage 20 von 20</div>
+                Was bedeutet "API" und warum ist es für KI wichtig? <span class="emoji">🔌</span>
+            </div>
+            <div class="answers">
+                <button class="answer" onclick="selectAnswer(this, false)">Artificial Programming Intelligence <span class="emoji">🤖</span></button>
+                <button class="answer" onclick="selectAnswer(this, true)">Application Programming Interface - der "Stecker" um KI-Services zu nutzen <span class="emoji">🔌</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Advanced Process Integration <span class="emoji">⚙️</span></button>
+                <button class="answer" onclick="selectAnswer(this, false)">Automatic Performance Indicator <span class="emoji">📊</span></button>
+            </div>
+            <button class="next-btn" onclick="nextQuestion()">Ergebnis zeigen</button>
+        </div>
+
+        <!-- Ergebnis Container -->
+        <div class="result-container" id="resultContainer">
+            <h2 class="result-title">Quiz beendet! <span class="emoji">🎉</span></h2>
+            <div class="result-score" id="finalScore">Dein Ergebnis: 0 / 20</div>
+            <div class="result-message" id="resultMessage"></div>
+            <button class="restart-btn" onclick="restartQuiz()">Nochmal spielen <span class="emoji">🔄</span></button>
+            
+            <div class="fun-fact">
+                <strong>Fun Fact:</strong> Die erste KI, die einen Turing-Test bestanden haben soll, war ein Chatbot namens "Eugene Goostman" - ein 13-jähriger ukrainischer Junge. Aber keine Sorge, er war nicht echt! <span class="emoji">🤖</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 0;
+        let score = 0;
+        const totalQuestions = 20;
+
+        function selectAnswer(button, isCorrect) {
+            const answers = button.parentNode.querySelectorAll('.answer');
+            answers.forEach(answer => {
+                answer.disabled = true;
+                if (answer === button) {
+                    answer.classList.add(isCorrect ? 'correct' : 'wrong');
+                } else if (answer.onclick.toString().includes('true')) {
+                    answer.classList.add('correct');
+                }
+            });
+
+            if (isCorrect) {
+                score++;
+                updateScore();
+            }
+
+            // Next button anzeigen
+            button.parentNode.parentNode.querySelector('.next-btn').style.display = 'block';
+        }
+
+        function nextQuestion() {
+            const current = document.querySelector(`.question-container[data-question="${currentQuestion}"]`);
+            current.classList.remove('active');
+
+            currentQuestion++;
+            updateProgress();
+
+            if (currentQuestion < totalQuestions) {
+                const next = document.querySelector(`.question-container[data-question="${currentQuestion}"]`);
+                next.classList.add('active');
+            } else {
+                showResults();
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentQuestion / totalQuestions) * 100;
+            document.getElementById('progress').style.width = progress + '%';
+        }
+
+        function updateScore() {
+            document.getElementById('scoreDisplay').textContent = `Punkte: ${score} / ${totalQuestions}`;
+        }
+
+        function showResults() {
+            document.querySelector('.quiz-header').style.display = 'none';
+            document.querySelector('.progress-bar').style.display = 'none';
+            document.querySelector('.score-display').style.display = 'none';
+            
+            const resultContainer = document.getElementById('resultContainer');
+            const finalScore = document.getElementById('finalScore');
+            const resultMessage = document.getElementById('resultMessage');
+
+            finalScore.textContent = `Dein Ergebnis: ${score} / ${totalQuestions}`;
+
+            let message = '';
+            if (score >= 18) {
+                message = "🏆 KI-Guru! Du bist sowohl bei den witzigen als auch bei den technischen Aspekten der KI ein Experte!";
+            } else if (score >= 15) {
+                message = "🚀 Hervorragend! Du verstehst KI von der lustigen UND der technischen Seite!";
+            } else if (score >= 12) {
+                message = "😄 Sehr gut! Du hast eine solide Mischung aus KI-Humor und technischem Wissen!";
+            } else if (score >= 9) {
+                message = "😊 Gut gemacht! Du kennst dich mit KI aus, auch wenn noch Luft nach oben ist!";
+            } else if (score >= 6) {
+                message = "🤔 Nicht schlecht! Vielleicht mehr KI-Tutorials schauen... oder mehr KI-Memes! 😉";
+            } else {
+                message = "😅 Hey, jeder fängt mal an! Selbst GPT-1 war nicht perfekt beim ersten Versuch!";
+            }
+
+            resultMessage.textContent = message;
+            resultContainer.style.display = 'block';
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            
+            // Alle Antworten zurücksetzen
+            document.querySelectorAll('.answer').forEach(answer => {
+                answer.disabled = false;
+                answer.className = 'answer';
+            });
+
+            // Alle Next-Buttons verstecken
+            document.querySelectorAll('.next-btn').forEach(btn => {
+                btn.style.display = 'none';
+            });
+
+            // Erste Frage anzeigen
+            document.querySelectorAll('.question-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            document.querySelector('.question-container[data-question="0"]').classList.add('active');
+
+            // UI zurücksetzen
+            document.querySelector('.quiz-header').style.display = 'block';
+            document.querySelector('.progress-bar').style.display = 'block';
+            document.querySelector('.score-display').style.display = 'block';
+            document.getElementById('resultContainer').style.display = 'none';
+
+            updateProgress();
+            updateScore();
+        }
+
+        // Initial setup
+        updateScore();
+    </script>
+</body>
+</html>
