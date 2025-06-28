@@ -48,11 +48,10 @@
             background-size: 300% 300%;
             animation: gradientShift 8s ease infinite;
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
             color: var(--text-color);
         }
 
@@ -74,7 +73,7 @@
 
         .password-container, .name-container, .theme-container {
             max-width: 450px;
-            width: 100%;
+            width: 90%;
             background: var(--container-bg);
             border-radius: 25px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
@@ -115,6 +114,7 @@
             display: flex;
             justify-content: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         
         .error-message {
@@ -124,13 +124,20 @@
         }
 
         .quiz-wrapper {
-            display: none; /* Hide quiz initially */
+            display: none;
             position: relative;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
         }
 
         .quiz-container {
             max-width: 800px;
-            margin: 0 auto;
+            width: 100%;
+            max-height: 95vh;
+            overflow-y: auto;
+            margin: auto;
             background: var(--container-bg);
             border-radius: 25px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
@@ -346,6 +353,48 @@
         
         .hint-bubble.visible {
             opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .quiz-container {
+                padding: 15px;
+            }
+            .quiz-title {
+                font-size: 2.2em;
+            }
+            .question {
+                font-size: 1.0em;
+                padding: 12px;
+            }
+            .answer {
+                font-size: 0.9em;
+                padding: 12px;
+            }
+            .joker-btn {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+            #mascot {
+                width: 80px;
+                height: 80px;
+                left: 10px;
+                bottom: 10px;
+            }
+            .hint-bubble {
+                bottom: 100px;
+                left: 50px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #mascot, .hint-bubble {
+                display: none;
+            }
+            .theme-buttons {
+                flex-direction: column;
+            }
         }
 
     </style>
@@ -687,7 +736,8 @@
         function startQuiz(theme) {
             document.body.className = theme;
             document.getElementById('themeScreen').style.display = 'none';
-            document.getElementById('quizWrapper').style.display = 'block';
+            const wrapper = document.getElementById('quizWrapper');
+            wrapper.style.display = 'flex';
             const subtitle = document.getElementById('quizSubtitle');
             subtitle.innerHTML = `Viel Glück, ${userName}! <br><small style="color: #c0392b;">Achtung: Wer unter 20 Punkte erreicht, gibt ein Eis aus! 🍦</small>`;
             loadQuestion();
