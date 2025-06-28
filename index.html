@@ -337,22 +337,19 @@
         }
         
         .hint-bubble {
-            position: fixed;
-            bottom: 150px;
-            left: 80px;
             background-color: #fff;
             color: #333;
             padding: 10px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 21;
+            margin: 0 auto 15px;
+            width: fit-content;
+            max-width: 90%;
+            display: none; /* Hidden by default */
         }
         
         .hint-bubble.visible {
-            opacity: 1;
+            display: block;
         }
 
         /* Responsive adjustments */
@@ -376,22 +373,11 @@
                 font-size: 0.9em;
             }
             #mascot {
-                width: 80px;
-                height: 80px;
-                left: 10px;
-                bottom: 10px;
-            }
-            .hint-bubble {
-                bottom: 100px;
-                left: 50px;
-                font-size: 0.9em;
+                display: none;
             }
         }
 
         @media (max-width: 480px) {
-            #mascot, .hint-bubble {
-                display: none;
-            }
             .theme-buttons {
                 flex-direction: column;
             }
@@ -421,7 +407,6 @@
             <rect x="35" y="60" width="30" height="20" rx="5" fill="#495057"/>
         </g>
     </svg>
-    <div class="hint-bubble" id="hintBubble"></div>
 
     <div class="password-container" id="passwordScreen">
         <h2>Passwort eingeben</h2>
@@ -452,18 +437,15 @@
                 <p class="quiz-subtitle" id="quizSubtitle">Das offizielle KI-Quiz</p>
             </div>
             
-            <div class="joker-container">
+            <div class="joker-container" id="joker-container">
                 <button class="joker-btn" id="joker5050" onclick="useFiftyFifty()">50:50 Joker</button>
                 <button class="joker-btn" id="jokerExpert" onclick="useExpertJoker()">Experten-Joker</button>
-            </div>
-
-            <div class="progress-bar">
-                <div class="progress" id="progress"></div>
             </div>
 
             <div class="score-display" id="scoreDisplay">Punkte: 0 / 30</div>
             <div class="motivation-message" id="motivationMessage"></div>
 
+            <div class="hint-bubble" id="hintBubble"></div>
             <div id="questionArea"></div>
             
             <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Weiter</button>
@@ -759,7 +741,6 @@
             const shuffledAnswers = shuffleArray([...questionData.answers]);
             let answersHtml = shuffledAnswers.map(answer => `<button class="answer" data-correct="${answer === questionData.correctAnswer}" onclick="selectAnswer(this)">${answer}</button>`).join('');
             questionArea.innerHTML = `<div class="question-container active"><div class="question"><div class="question-number">Frage ${currentQuestionIndex + 1} von ${totalQuestions}</div>${questionData.question}</div><div class="answers">${answersHtml}</div></div>`;
-            updateProgress();
             updateScore();
             document.getElementById('nextBtn').style.display = 'none';
         }
@@ -830,8 +811,20 @@
         }
 
         function showResults() {
-            document.getElementById('quizWrapper').style.display = 'none';
+            const quizContainer = document.querySelector('.quiz-container');
             const resultContainer = document.getElementById('resultContainer');
+            
+            // Hide quiz elements instead of clearing container
+            document.querySelector('.quiz-header').style.display = 'none';
+            document.getElementById('joker-container').style.display = 'none';
+            document.getElementById('scoreDisplay').style.display = 'none';
+            document.getElementById('motivationMessage').style.display = 'none';
+            document.getElementById('hintBubble').style.display = 'none';
+            document.getElementById('questionArea').innerHTML = '';
+            document.getElementById('nextBtn').style.display = 'none';
+
+            resultContainer.style.display = 'block';
+
             document.getElementById('finalScore').textContent = `Dein Ergebnis: ${score} / ${totalQuestions}`;
             let message = '';
             if (score < 20) {
@@ -847,7 +840,6 @@
             document.getElementById('detailedAnalysis').innerHTML = `<h4>Deine Detail-Analyse:</h4><p>KI-Humor: ${categoryScores.humor}/${categoryTotals.humor}</p><p>Technik-Wissen: ${categoryScores.tech}/${categoryTotals.tech}</p><p>Experten-Fragen: ${categoryScores.expert}/${categoryTotals.expert}</p>`;
             updateHighscore(userName, score);
             displayHighscores();
-            resultContainer.style.display = 'block';
             document.getElementById('download-btn').style.display = 'block';
         }
         
@@ -869,7 +861,6 @@
             }
         });
 
-        function updateProgress() { document.getElementById('progress').style.width = ((currentQuestionIndex) / totalQuestions) * 100 + '%'; }
         function updateScore() { document.getElementById('scoreDisplay').textContent = `Punkte: ${score} / ${totalQuestions}`; }
         function updateHighscore(name, score) { const highscores = JSON.parse(localStorage.getItem('kiQuizHighscores')) || []; highscores.push({ name, score }); highscores.sort((a, b) => b.score - a.score); highscores.splice(5); localStorage.setItem('kiQuizHighscores', JSON.stringify(highscores)); }
         function displayHighscores() { const highscores = JSON.parse(localStorage.getItem('kiQuizHighscores')) || []; document.getElementById('highscore-list').innerHTML = highscores.map(entry => `<li><span>${entry.name}</span><span>${entry.score} Pkt.</span></li>`).join(''); }
@@ -878,3 +869,4 @@
     </script>
 </body>
 </html>
+
