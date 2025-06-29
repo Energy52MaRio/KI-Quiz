@@ -6,15 +6,30 @@
     <title>Das ultimative MARIO KI-Quiz 🤖</title>
     <!-- Library for creating the result card image -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Courier+Prime&family=Roboto+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-bg: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);
-            --container-bg: rgba(255, 255, 255, 0.95);
-            --text-color: #2c3e50;
-            --question-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --answer-bg: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
-            --highscore-gold: #ffd700;
-            --font-family: 'Comic Sans MS', cursive, sans-serif;
+            --primary-bg: #000;
+            --container-bg: rgba(20, 20, 30, 0.85);
+            --text-color: #E0E0E0;
+            --question-bg: linear-gradient(135deg, #1a2a45, #3a4a65);
+            --answer-bg: linear-gradient(135deg, #2c3e50, #34495e);
+            --highscore-gold: #FEE819;
+            --font-family: 'Orbitron', sans-serif;
+            --green-letter-color: #49da54;
+        }
+
+        .blueprint-theme {
+            --primary-bg: #051937;
+            --container-bg: rgba(10, 30, 60, 0.85);
+            --text-color: #00ffff;
+            --question-bg: linear-gradient(135deg, #0d3b66, #1a4c8b);
+            --answer-bg: linear-gradient(135deg, #1a293f, #2c3e50);
+            --highscore-gold: #00ffff;
+            --font-family: 'Roboto Mono', monospace;
+            --green-letter-color: #00ffff;
         }
 
         .dark-theme {
@@ -24,6 +39,7 @@
             --question-bg: linear-gradient(135deg, #8e44ad, #c0392b);
             --answer-bg: linear-gradient(135deg, #34495e, #2c3e50);
             --highscore-gold: #b29600;
+            --font-family: 'Verdana', sans-serif;
         }
         
         .matrix-theme {
@@ -33,7 +49,7 @@
             --question-bg: linear-gradient(135deg, #0a2a0a, #0a4a0a);
             --answer-bg: linear-gradient(135deg, #051a05, #053a05);
             --highscore-gold: #008f00;
-            --font-family: 'Courier New', Courier, monospace;
+            --font-family: 'Courier Prime', monospace;
         }
         
         * {
@@ -46,28 +62,26 @@
             font-family: var(--font-family);
             background: var(--primary-bg);
             background-size: 300% 300%;
-            animation: gradientShift 8s ease infinite;
             min-height: 100vh;
             padding: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-color);
-        }
-
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            overflow: hidden;
         }
         
-        #confetti-canvas {
+        #background-canvas, #confetti-canvas {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
+            z-index: 1;
+        }
+        
+        #confetti-canvas {
             z-index: 1000;
         }
 
@@ -80,6 +94,7 @@
             padding: 30px;
             text-align: center;
             z-index: 10;
+            border: 1px solid var(--text-color);
         }
 
         .password-container h2, .name-container h2, .theme-container h2 {
@@ -96,6 +111,8 @@
             font-size: 1.1em;
             margin-bottom: 20px;
             text-align: center;
+            background-color: #f0f0f0;
+            color: #333;
         }
 
         .password-btn, .name-btn, .theme-btn {
@@ -142,8 +159,9 @@
             border-radius: 25px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             padding: 30px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(5px);
             z-index: 10;
+            border: 1px solid var(--text-color);
         }
 
         .quiz-header {
@@ -155,17 +173,17 @@
             font-size: 3.5em;
             color: var(--text-color);
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 0 0 10px var(--green-letter-color);
             font-weight: bold;
         }
 
         .green-letter {
-            color: #28a745;
+            color: var(--green-letter-color);
         }
 
         .quiz-subtitle {
             font-size: 1.2em;
-            color: #7f8c8d;
+            color: #aaa;
             margin-bottom: 20px;
         }
 
@@ -178,10 +196,11 @@
             font-size: 1.3em;
             text-align: center;
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            border: 1px solid var(--text-color);
         }
 
         .question-number {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
             padding: 8px 15px;
             border-radius: 20px;
             display: inline-block;
@@ -198,7 +217,7 @@
         .answer {
             background: var(--answer-bg);
             color: var(--text-color);
-            border: none;
+            border: 1px solid var(--text-color);
             padding: 20px;
             border-radius: 15px;
             font-size: 1.1em;
@@ -216,7 +235,7 @@
 
         .answer:hover {
             transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 0 15px var(--green-letter-color);
         }
 
         .answer:active {
@@ -272,23 +291,23 @@
             padding: 10px 20px;
             border-radius: 20px;
             cursor: pointer;
-            border: 2px solid #667eea;
-            background-color: white;
-            color: #667eea;
+            border: 2px solid var(--text-color);
+            background-color: transparent;
+            color: var(--text-color);
             transition: all 0.3s ease;
         }
         
         .joker-btn:hover {
-            background-color: #667eea;
-            color: white;
+            background-color: var(--text-color);
+            color: var(--primary-bg);
         }
         
         .joker-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background-color: #e0e0e0;
-            border-color: #e0e0e0;
-            color: #a0a0a0;
+            background-color: #555;
+            border-color: #555;
+            color: #888;
         }
         
         .result-container {
@@ -352,6 +371,26 @@
             display: block;
         }
 
+        #countdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+        .countdown-item span {
+            font-size: 2.5em;
+            font-weight: bold;
+            line-height: 1;
+            text-shadow: 0 0 8px var(--green-letter-color);
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .quiz-container {
@@ -375,6 +414,12 @@
             #mascot {
                 display: none;
             }
+            .countdown-item span {
+                font-size: 1.8em;
+            }
+            .countdown-item {
+                font-size: 0.8em;
+            }
         }
 
         @media (max-width: 480px) {
@@ -386,6 +431,7 @@
     </style>
 </head>
 <body>
+    <canvas id="background-canvas"></canvas>
     <canvas id="confetti-canvas"></canvas>
     
     <!-- Mascot SVG -->
@@ -409,7 +455,15 @@
     </svg>
 
     <div class="password-container" id="passwordScreen">
-        <h2>Passwort eingeben</h2>
+        <h2>Countdown zum Quiz</h2>
+        <div id="countdown-container">
+            <div class="countdown-item"><span id="days">00</span>Tage</div>
+            <div class="countdown-item"><span id="hours">00</span>Stunden</div>
+            <div class="countdown-item"><span id="minutes">00</span>Minuten</div>
+            <div class="countdown-item"><span id="seconds">00</span>Sekunden</div>
+        </div>
+        <button id="pause-btn" class="password-btn" style="margin-top: 20px;">Pause</button>
+        <h2 style="margin-top: 30px;">Passwort eingeben</h2>
         <input type="password" id="passwordInput" class="password-input" placeholder="********">
         <button class="password-btn" onclick="checkPassword()">Enter</button>
         <p class="error-message" id="passwordError">Falsches Passwort!</p>
@@ -424,7 +478,8 @@
     <div class="theme-container" id="themeScreen" style="display: none;">
         <h2>Wähle dein Theme</h2>
         <div class="theme-buttons">
-            <button class="theme-btn" onclick="startQuiz('default')">MARIO</button>
+            <button class="theme-btn" onclick="startQuiz('star-wars-theme')">Star Wars</button>
+            <button class="theme-btn" onclick="startQuiz('blueprint-theme')">Blueprint</button>
             <button class="theme-btn" onclick="startQuiz('dark-theme')">Dark Mode</button>
             <button class="theme-btn" onclick="startQuiz('matrix-theme')">Matrix</button>
         </div>
@@ -689,6 +744,7 @@
         let categoryScores = { humor: 0, tech: 0, expert: 0 };
         let categoryTotals = { humor: 0, tech: 0, expert: 0 };
         let fiftyFiftyUsed = false, expertJokerUsed = false, antennaClicks = 0;
+        let countdownInterval;
 
         const correctSound = document.getElementById('correct-sound');
         const wrongSound = document.getElementById('wrong-sound');
@@ -700,6 +756,7 @@
             if (document.getElementById('passwordInput').value === '#Quizkönig25') {
                 document.getElementById('passwordScreen').style.display = 'none';
                 document.getElementById('nameScreen').style.display = 'block';
+                clearInterval(countdownInterval);
             } else {
                 document.getElementById('passwordError').style.display = 'block';
             }
@@ -864,9 +921,110 @@
         function updateScore() { document.getElementById('scoreDisplay').textContent = `Punkte: ${score} / ${totalQuestions}`; }
         function updateHighscore(name, score) { const highscores = JSON.parse(localStorage.getItem('kiQuizHighscores')) || []; highscores.push({ name, score }); highscores.sort((a, b) => b.score - a.score); highscores.splice(5); localStorage.setItem('kiQuizHighscores', JSON.stringify(highscores)); }
         function displayHighscores() { const highscores = JSON.parse(localStorage.getItem('kiQuizHighscores')) || []; document.getElementById('highscore-list').innerHTML = highscores.map(entry => `<li><span>${entry.name}</span><span>${entry.score} Pkt.</span></li>`).join(''); }
-        const confettiCanvas = document.getElementById('confetti-canvas'); const confettiCtx = confettiCanvas.getContext('2d'); let confettiParticles = []; function triggerConfetti() { confettiParticles = []; for (let i = 0; i < 100; i++) { confettiParticles.push({ x: confettiCanvas.width / 2, y: confettiCanvas.height / 2, color: `hsl(${Math.random() * 360}, 100%, 50%)`, radius: Math.random() * 3 + 2, vx: Math.random() * 10 - 5, vy: Math.random() * -15 - 5, alpha: 1 }); } animateConfetti(); } function animateConfetti() { confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); confettiParticles.forEach((p, index) => { p.vy += 0.4; p.x += p.vx; p.y += p.vy; p.alpha -= 0.02; if (p.alpha <= 0) { confettiParticles.splice(index, 1); } else { confettiCtx.globalAlpha = p.alpha; confettiCtx.beginPath(); confettiCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); confettiCtx.fillStyle = p.color; confettiCtx.fill(); } }); if (confettiParticles.length > 0) { requestAnimationFrame(animateConfetti); } else { confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); } } window.onresize = () => { confettiCanvas.width = window.innerWidth; confettiCanvas.height = window.innerHeight; }; window.onresize();
+        const confettiCanvas = document.getElementById('confetti-canvas'); const confettiCtx = confettiCanvas.getContext('2d'); let confettiParticles = []; function triggerConfetti() { confettiParticles = []; for (let i = 0; i < 100; i++) { confettiParticles.push({ x: confettiCanvas.width / 2, y: confettiCanvas.height / 2, color: `hsl(${Math.random() * 360}, 100%, 50%)`, radius: Math.random() * 3 + 2, vx: Math.random() * 10 - 5, vy: Math.random() * -15 - 5, alpha: 1 }); } animateConfetti(); } function animateConfetti() { confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); confettiParticles.forEach((p, index) => { p.vy += 0.4; p.x += p.vx; p.y += p.vy; p.alpha -= 0.02; if (p.alpha <= 0) { confettiParticles.splice(index, 1); } else { confettiCtx.globalAlpha = p.alpha; confettiCtx.beginPath(); confettiCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); confettiCtx.fillStyle = p.color; confettiCtx.fill(); } }); if (confettiParticles.length > 0) { requestAnimationFrame(animateConfetti); } else { confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height); } } 
+        
+        // --- Countdown ---
+        const pauseBtn = document.getElementById('pause-btn');
+        const targetDate = new Date("July 4, 2025 10:00:00").getTime();
+
+        function startCountdown() {
+            countdownInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('countdown-container').innerHTML = "Das Quiz ist live!";
+                    pauseBtn.style.display = 'none';
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('days').innerText = String(days).padStart(2, '0');
+                document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+            }, 1000);
+        }
+
+        pauseBtn.addEventListener('click', () => {
+            if (pauseBtn.textContent === 'Pause') {
+                clearInterval(countdownInterval);
+                pauseBtn.textContent = 'Fortsetzen';
+            } else {
+                startCountdown();
+                pauseBtn.textContent = 'Pause';
+            }
+        });
+
+        // --- Space Background ---
+        const bgCanvas = document.getElementById('background-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let stars = [];
+        let animationFrameId;
+        const numStars = 400;
+        const speed = 2;
+        
+        function initStars() {
+            if(animationFrameId) cancelAnimationFrame(animationFrameId);
+            bgCanvas.width = window.innerWidth;
+            bgCanvas.height = window.innerHeight;
+            stars = [];
+            for (let i = 0; i < numStars; i++) {
+                stars.push({
+                    x: (Math.random() - 0.5) * bgCanvas.width,
+                    y: (Math.random() - 0.5) * bgCanvas.height,
+                    z: Math.random() * bgCanvas.width
+                });
+            }
+            animateStars();
+        }
+
+        function animateStars() {
+            const centerX = bgCanvas.width / 2;
+            const centerY = bgCanvas.height / 2;
+
+            bgCtx.fillStyle = 'rgba(0,0,0,0.2)'; // Fading effect
+            bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+            bgCtx.fillStyle = 'white';
+
+            stars.forEach(star => {
+                star.z -= speed;
+
+                if (star.z <= 0) {
+                    star.z = bgCanvas.width;
+                    star.x = (Math.random() - 0.5) * bgCanvas.width;
+                    star.y = (Math.random() - 0.5) * bgCanvas.height;
+                }
+
+                const sx = (star.x / star.z) * centerX + centerX;
+                const sy = (star.y / star.z) * centerY + centerY;
+                const radius = (1 - star.z / bgCanvas.width) * 2;
+
+                if (sx > 0 && sx < bgCanvas.width && sy > 0 && sy < bgCanvas.height) {
+                    bgCtx.beginPath();
+                    bgCtx.arc(sx, sy, radius, 0, Math.PI * 2);
+                    bgCtx.fill();
+                }
+            });
+
+            animationFrameId = requestAnimationFrame(animateStars);
+        }
+
+        window.onresize = () => { 
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+            initStars();
+        }; 
+        
+        // Initial calls
+        startCountdown();
+        initStars();
         document.getElementById('scoreDisplay').textContent = `Punkte: 0 / ${totalQuestions}`;
     </script>
 </body>
 </html>
-
