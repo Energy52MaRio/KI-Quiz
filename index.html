@@ -489,7 +489,7 @@
         <div class="quiz-container">
             <div class="quiz-header">
                 <h1 class="quiz-title">M<span class="green-letter">A</span>R<span class="green-letter">I</span>O</h1>
-                <p class="quiz-subtitle" id="quizSubtitle">Das offizielle KI-Quiz</p>
+                <p class="quiz-subtitle" id="quizSubtitle">Die offizielle KI-Prüfung</p>
             </div>
             
             <div class="joker-container" id="joker-container">
@@ -507,7 +507,7 @@
 
             <div class="result-container" id="resultContainer">
                 <div id="result-card">
-                    <h2 class="result-title">Quiz beendet! <span class="emoji">🎉</span></h2>
+                    <h2 class="result-title">Missions-Debriefing <span class="emoji">📜</span></h2>
                     <div class="result-score" id="finalScore">Dein Ergebnis: 0 / 30</div>
                     <div class="result-message" id="resultMessage"></div>
                     <div class="detailed-analysis" id="detailedAnalysis"></div>
@@ -739,6 +739,9 @@
             }
         ];
 
+        const successMessages = ["System-Zugriff gewährt!", "Ziel erfasst. Korrekt!", "Mission-Parameter bestätigt.", "Datenpaket erfolgreich entschlüsselt.", "Operation erfolgreich. Nächste Phase."];
+        const failMessages = ["Firewall hält stand. Neuer Versuch!", "Datenstrom korrumpiert. Analyse fehlgeschlagen.", "Zugriff verweigert. System-Integrität gefährdet.", "Falscher Vektor. System wehrt ab.", "Anomalie entdeckt. Bitte rekalibrieren."];
+
         let currentQuestionIndex = 0, score = 0, userName = "";
         const totalQuestions = questions.length;
         let categoryScores = { humor: 0, tech: 0, expert: 0 };
@@ -778,7 +781,7 @@
             const wrapper = document.getElementById('quizWrapper');
             wrapper.style.display = 'flex';
             const subtitle = document.getElementById('quizSubtitle');
-            subtitle.innerHTML = `Viel Glück, ${userName}! <br><small style="color: #c0392b;">Achtung: Wer unter 20 Punkte erreicht, gibt ein Eis aus! 🍦</small>`;
+            subtitle.innerHTML = `Willkommen zur MARIO-Prüfung, Rekrut ${userName}! <br><small style="color: #c0392b;">Achtung: Wer die Prüfung nicht besteht (unter 20 Pkt.), spendiert dem Team ein Eis! 🍦</small>`;
             loadQuestion();
         }
         
@@ -818,13 +821,13 @@
                 score++;
                 const category = questions[currentQuestionIndex].category;
                 if(category) categoryScores[category]++;
-                message = ["Stark!", "Genial!", "Exzellent!", "Wow!", "Perfekt!"][Math.floor(Math.random() * 5)];
+                message = successMessages[Math.floor(Math.random() * successMessages.length)];
                 motivationMessageEl.classList.add('correct');
                 correctSound.play().catch(e => {});
                 triggerConfetti();
                 mascot.classList.add('happy');
             } else {
-                message = ["Knapp daneben!", "Uff, knifflig.", "Nicht ganz!", "Fast...", "Komm schon!"][Math.floor(Math.random() * 5)];
+                message = failMessages[Math.floor(Math.random() * failMessages.length)];
                 motivationMessageEl.classList.add('wrong');
                 wrongSound.play().catch(e => {});
                 mascot.classList.add('thinking');
@@ -881,18 +884,27 @@
             document.getElementById('nextBtn').style.display = 'none';
 
             resultContainer.style.display = 'block';
-
-            document.getElementById('finalScore').textContent = `Dein Ergebnis: ${score} / ${totalQuestions}`;
+            
+            let rank = '';
             let message = '';
             if (score < 20) {
-                 message = `Uff, ${userName}, das war knapp! Das macht dann ein Eis für das ganze Team! 🍦 Trotzdem gut gekämpft!`;
-            } else if (score >= 27) {
-                message = `🏆 KI-Großmeister! Absolut brillant, ${userName}!`;
-            } else if (score >= 22) {
-                message = `🚀 KI-Experte! Wow, ${userName}!`;
-            } else {
-                message = `😄 Sehr gut, ${userName}! Eis-Wette gewonnen!`;
+                 rank = "Prüfung fehlgeschlagen";
+                 message = `Uff, Rekrut ${userName}, das war knapp! Das macht dann ein Eis für das ganze Team! 🍦 Trotzdem gut gekämpft!`;
+            } else if (score >= 20 && score <= 21) {
+                rank = "Rang: Kadett";
+                message = `Sie haben die Grundausbildung bestanden, Kadett ${userName}. Ein solider Start!`;
+            } else if (score >= 22 && score <= 26) {
+                rank = "Rang: Spezialist";
+                message = `Ihre Fähigkeiten sind beeindruckend, Spezialist ${userName}. Sie sind eine wertvolle Verstärkung.`;
+            } else if (score >= 27 && score <= 29) {
+                rank = "Rang: Commander";
+                message = `Exzellente Leistung, Commander ${userName}! Sie gehören zur Elite der MARIO-Einheit!`;
+            } else { // score === 30
+                rank = "Rang: Großmeister der KI-Galaxie";
+                message = `Perfektion! Die Macht ist stark in Ihnen, Großmeister ${userName}!`;
             }
+            
+            document.getElementById('finalScore').textContent = `${rank} - Dein Ergebnis: ${score} / ${totalQuestions}`;
             document.getElementById('resultMessage').textContent = message;
             document.getElementById('detailedAnalysis').innerHTML = `<h4>Deine Detail-Analyse:</h4><p>KI-Humor: ${categoryScores.humor}/${categoryTotals.humor}</p><p>Technik-Wissen: ${categoryScores.tech}/${categoryTotals.tech}</p><p>Experten-Fragen: ${categoryScores.expert}/${categoryTotals.expert}</p>`;
             updateHighscore(userName, score);
