@@ -390,6 +390,41 @@
             line-height: 1;
             text-shadow: 0 0 8px var(--green-letter-color);
         }
+        
+        .timer-container {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+        }
+        
+        .timer-container svg {
+            transform: rotate(-90deg);
+        }
+        
+        .timer-circle {
+            fill: none;
+            stroke-width: 5;
+        }
+        
+        .timer-background {
+            stroke: rgba(255,255,255,0.3);
+        }
+        
+        .timer-progress {
+            stroke: var(--green-letter-color);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear;
+        }
+        
+        .timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            font-weight: bold;
+        }
 
         /* Responsive adjustments */
         @media (max-width: 768px) {
@@ -495,6 +530,14 @@
             <div class="joker-container" id="joker-container">
                 <button class="joker-btn" id="joker5050" onclick="useFiftyFifty()">50:50 Joker</button>
                 <button class="joker-btn" id="jokerExpert" onclick="useExpertJoker()">Experten-Joker</button>
+            </div>
+
+            <div class="timer-container" id="timer-container">
+                <svg width="60" height="60">
+                    <circle class="timer-circle timer-background" cx="30" cy="30" r="25"></circle>
+                    <circle class="timer-circle timer-progress" id="timer-progress" cx="30" cy="30" r="25"></circle>
+                </svg>
+                <div class="timer-text" id="timer-text">20</div>
             </div>
 
             <div class="score-display" id="scoreDisplay">Punkte: 0 / 30</div>
@@ -690,7 +733,7 @@
             },
             {
                 question: "Was ist der Hauptunterschied zwischen \"Supervised\" und \"Unsupervised Learning\"?",
-                answers: ["Mit oder ohne die Aufsicht eines erwachsenen Programmierers <span class=\"emoji\">🧑‍🏫</span>", "Supervised lernt mit beschrifteten Daten (Input & korrekter Output), Unsupervised sucht Muster in unbeschrifteten Daten <span class=\"emoji\">🏷️</span>", "Supervised ist für brave KIs, Unsupervised für rebellische <span class=\"emoji\">😈</span>", "Eines ist für den Tag, das andere für die Nacht <span class=\"emoji\">🌞🌜</span>"],
+                answers: ["Mit oder ohne die Aufsicht eines erwachsenen Programmierers <span class=\"emoji\">🧑‍🏫</span>", "Supervised lernt mit beschrifteten Daten (Input & korrekter Output), Unsupervised sucht Muster in unbeschrifteten Daten <span class=\"emoji\">🏷️</span>", "Supervised ist für brave KIs, Unsupervised für rebellische <span class=\"emoji\">😈</span>", "Eines ist für den Tag, das andere für die Nacht <span class=\"emoji\">�🌜</span>"],
                 correctAnswer: "Supervised lernt mit beschrifteten Daten (Input & korrekter Output), Unsupervised sucht Muster in unbeschrifteten Daten <span class=\"emoji\">🏷️</span>",
                 category: 'tech',
                 hint: "Das eine hat einen 'Lehrer', das andere nicht."
@@ -748,6 +791,8 @@
         let categoryTotals = { humor: 0, tech: 0, expert: 0 };
         let fiftyFiftyUsed = false, expertJokerUsed = false, antennaClicks = 0;
         let countdownInterval;
+        let questionTimerInterval;
+        let timeLeft = 20;
 
         const correctSound = document.getElementById('correct-sound');
         const wrongSound = document.getElementById('wrong-sound');
@@ -803,16 +848,42 @@
             questionArea.innerHTML = `<div class="question-container active"><div class="question"><div class="question-number">Frage ${currentQuestionIndex + 1} von ${totalQuestions}</div>${questionData.question}</div><div class="answers">${answersHtml}</div></div>`;
             updateScore();
             document.getElementById('nextBtn').style.display = 'none';
+            startQuestionTimer();
+        }
+
+        function startQuestionTimer() {
+            timeLeft = 20;
+            const timerText = document.getElementById('timer-text');
+            const timerProgress = document.getElementById('timer-progress');
+            const fullCircle = 2 * Math.PI * 25; // 2 * PI * radius
+            timerProgress.style.strokeDasharray = fullCircle;
+
+            clearInterval(questionTimerInterval);
+            questionTimerInterval = setInterval(() => {
+                timeLeft--;
+                timerText.textContent = timeLeft;
+                const offset = (1 - (timeLeft / 20)) * fullCircle;
+                timerProgress.style.strokeDashoffset = offset;
+
+                if (timeLeft <= 0) {
+                    clearInterval(questionTimerInterval);
+                    handleAnswer(false); // Time's up, answer is wrong
+                }
+            }, 1000);
         }
 
         function selectAnswer(button) {
+            clearInterval(questionTimerInterval);
             const isCorrect = button.getAttribute('data-correct') === 'true';
             document.querySelectorAll('.answer').forEach(btn => {
                 btn.disabled = true;
                 if (btn.getAttribute('data-correct') === 'true') btn.classList.add('correct');
                 else btn.classList.add('wrong');
             });
-            
+            handleAnswer(isCorrect);
+        }
+
+        function handleAnswer(isCorrect) {
             const motivationMessageEl = document.getElementById('motivationMessage');
             let message = '';
             motivationMessageEl.classList.remove('correct', 'wrong');
@@ -877,6 +948,7 @@
             // Hide quiz elements instead of clearing container
             document.querySelector('.quiz-header').style.display = 'none';
             document.getElementById('joker-container').style.display = 'none';
+            document.getElementById('timer-container').style.display = 'none';
             document.getElementById('scoreDisplay').style.display = 'none';
             document.getElementById('motivationMessage').style.display = 'none';
             document.getElementById('hintBubble').style.display = 'none';
@@ -1040,3 +1112,4 @@
     </script>
 </body>
 </html>
+�
